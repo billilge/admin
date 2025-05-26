@@ -18,11 +18,13 @@ export default [
     {
         files: ['**/*.ts', '**/*.tsx', '**/*.js', '**/*.jsx'], // 이 규칙은 모든 JS/TS 파일에 적용
         languageOptions: {
+            parser: tseslint.parser,
             ecmaVersion: 'latest',
             sourceType: 'module',
             parserOptions: {
                 ecmaFeatures: { jsx: true },
-            },
+                project: './tsconfig.json', // optional: 타입 정보를 쓰는 경우
+            }
         },
         plugins: {
             import: eslintPluginImport,
@@ -42,6 +44,7 @@ export default [
                     alphabetize: { order: 'asc', caseInsensitive: true },
                 },
             ],
+            '@typescript-eslint/no-redeclare': 'off',
         },
         settings: {
             react: { version: 'detect' },

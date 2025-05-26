@@ -24,13 +24,6 @@ import type {
   UseQueryResult
 } from '@tanstack/react-query';
 
-import axios from 'axios';
-import type {
-  AxiosError,
-  AxiosRequestConfig,
-  AxiosResponse
-} from 'axios';
-
 import type {
   AddItemBody,
   AdminFindAllResponse,
@@ -67,36 +60,39 @@ import type {
   UpdateItemBody
 } from './model';
 
+import { customMutator } from '../lib/axiosMutator';
 /**
  * ID로 물품을 상세 조회하는 관리자용 API
  * @summary 물품 상세 조회
  */
 export const getItemById = (
-    itemId: number, options?: AxiosRequestConfig
- ): Promise<AxiosResponse<ItemDetail>> => {
-    
-    
-    return axios.get(
-      `/admin/items/${itemId}`,options
-    );
-  }
-
+    itemId: number,
+ signal?: AbortSignal
+) => {
+      
+      
+      return customMutator<ItemDetail>(
+      {url: `/admin/items/${itemId}`, method: 'GET', signal
+    },
+      );
+    }
+  
 
 export const getGetItemByIdQueryKey = (itemId: number,) => {
     return [`/admin/items/${itemId}`] as const;
     }
 
     
-export const getGetItemByIdQueryOptions = <TData = Awaited<ReturnType<typeof getItemById>>, TError = AxiosError<unknown>>(itemId: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getItemById>>, TError, TData>>, axios?: AxiosRequestConfig}
+export const getGetItemByIdQueryOptions = <TData = Awaited<ReturnType<typeof getItemById>>, TError = unknown>(itemId: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getItemById>>, TError, TData>>, }
 ) => {
 
-const {query: queryOptions, axios: axiosOptions} = options ?? {};
+const {query: queryOptions} = options ?? {};
 
   const queryKey =  queryOptions?.queryKey ?? getGetItemByIdQueryKey(itemId);
 
   
 
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof getItemById>>> = ({ signal }) => getItemById(itemId, { signal, ...axiosOptions });
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getItemById>>> = ({ signal }) => getItemById(itemId, signal);
 
       
 
@@ -106,39 +102,39 @@ const {query: queryOptions, axios: axiosOptions} = options ?? {};
 }
 
 export type GetItemByIdQueryResult = NonNullable<Awaited<ReturnType<typeof getItemById>>>
-export type GetItemByIdQueryError = AxiosError<unknown>
+export type GetItemByIdQueryError = unknown
 
 
-export function useGetItemById<TData = Awaited<ReturnType<typeof getItemById>>, TError = AxiosError<unknown>>(
+export function useGetItemById<TData = Awaited<ReturnType<typeof getItemById>>, TError = unknown>(
  itemId: number, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getItemById>>, TError, TData>> & Pick<
         DefinedInitialDataOptions<
           Awaited<ReturnType<typeof getItemById>>,
           TError,
           Awaited<ReturnType<typeof getItemById>>
         > , 'initialData'
-      >, axios?: AxiosRequestConfig}
+      >, }
  , queryClient?: QueryClient
   ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetItemById<TData = Awaited<ReturnType<typeof getItemById>>, TError = AxiosError<unknown>>(
+export function useGetItemById<TData = Awaited<ReturnType<typeof getItemById>>, TError = unknown>(
  itemId: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getItemById>>, TError, TData>> & Pick<
         UndefinedInitialDataOptions<
           Awaited<ReturnType<typeof getItemById>>,
           TError,
           Awaited<ReturnType<typeof getItemById>>
         > , 'initialData'
-      >, axios?: AxiosRequestConfig}
+      >, }
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetItemById<TData = Awaited<ReturnType<typeof getItemById>>, TError = AxiosError<unknown>>(
- itemId: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getItemById>>, TError, TData>>, axios?: AxiosRequestConfig}
+export function useGetItemById<TData = Awaited<ReturnType<typeof getItemById>>, TError = unknown>(
+ itemId: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getItemById>>, TError, TData>>, }
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 /**
  * @summary 물품 상세 조회
  */
 
-export function useGetItemById<TData = Awaited<ReturnType<typeof getItemById>>, TError = AxiosError<unknown>>(
- itemId: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getItemById>>, TError, TData>>, axios?: AxiosRequestConfig}
+export function useGetItemById<TData = Awaited<ReturnType<typeof getItemById>>, TError = unknown>(
+ itemId: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getItemById>>, TError, TData>>, }
  , queryClient?: QueryClient 
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
 
@@ -160,31 +156,33 @@ export function useGetItemById<TData = Awaited<ReturnType<typeof getItemById>>, 
  */
 export const updateItem = (
     itemId: number,
-    updateItemBody: UpdateItemBody, options?: AxiosRequestConfig
- ): Promise<AxiosResponse<void>> => {
-    
-    const formData = new FormData();
+    updateItemBody: UpdateItemBody,
+ ) => {
+      
+      const formData = new FormData();
 formData.append(`image`, updateItemBody.image)
 formData.append(`itemRequest`, JSON.stringify(updateItemBody.itemRequest));
 
-    return axios.put(
-      `/admin/items/${itemId}`,
-      formData,options
-    );
-  }
+      return customMutator<void>(
+      {url: `/admin/items/${itemId}`, method: 'PUT',
+      headers: {'Content-Type': 'multipart/form-data', },
+       data: formData
+    },
+      );
+    }
+  
 
 
-
-export const getUpdateItemMutationOptions = <TError = AxiosError<ErrorResponse>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateItem>>, TError,{itemId: number;data: UpdateItemBody}, TContext>, axios?: AxiosRequestConfig}
+export const getUpdateItemMutationOptions = <TError = ErrorResponse,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateItem>>, TError,{itemId: number;data: UpdateItemBody}, TContext>, }
 ): UseMutationOptions<Awaited<ReturnType<typeof updateItem>>, TError,{itemId: number;data: UpdateItemBody}, TContext> => {
 
 const mutationKey = ['updateItem'];
-const {mutation: mutationOptions, axios: axiosOptions} = options ?
+const {mutation: mutationOptions} = options ?
       options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
       options
       : {...options, mutation: {...options.mutation, mutationKey}}
-      : {mutation: { mutationKey, }, axios: undefined};
+      : {mutation: { mutationKey, }};
 
       
 
@@ -192,7 +190,7 @@ const {mutation: mutationOptions, axios: axiosOptions} = options ?
       const mutationFn: MutationFunction<Awaited<ReturnType<typeof updateItem>>, {itemId: number;data: UpdateItemBody}> = (props) => {
           const {itemId,data} = props ?? {};
 
-          return  updateItem(itemId,data,axiosOptions)
+          return  updateItem(itemId,data,)
         }
 
         
@@ -202,13 +200,13 @@ const {mutation: mutationOptions, axios: axiosOptions} = options ?
 
     export type UpdateItemMutationResult = NonNullable<Awaited<ReturnType<typeof updateItem>>>
     export type UpdateItemMutationBody = UpdateItemBody
-    export type UpdateItemMutationError = AxiosError<ErrorResponse>
+    export type UpdateItemMutationError = ErrorResponse
 
     /**
  * @summary 대여 물품 수정
  */
-export const useUpdateItem = <TError = AxiosError<ErrorResponse>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateItem>>, TError,{itemId: number;data: UpdateItemBody}, TContext>, axios?: AxiosRequestConfig}
+export const useUpdateItem = <TError = ErrorResponse,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateItem>>, TError,{itemId: number;data: UpdateItemBody}, TContext>, }
  , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof updateItem>>,
         TError,
@@ -226,27 +224,28 @@ export const useUpdateItem = <TError = AxiosError<ErrorResponse>,
  * @summary 대여 물품 삭제
  */
 export const deleteItem = (
-    itemId: number, options?: AxiosRequestConfig
- ): Promise<AxiosResponse<void>> => {
-    
-    
-    return axios.delete(
-      `/admin/items/${itemId}`,options
-    );
-  }
+    itemId: number,
+ ) => {
+      
+      
+      return customMutator<void>(
+      {url: `/admin/items/${itemId}`, method: 'DELETE'
+    },
+      );
+    }
+  
 
 
-
-export const getDeleteItemMutationOptions = <TError = AxiosError<ErrorResponse>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteItem>>, TError,{itemId: number}, TContext>, axios?: AxiosRequestConfig}
+export const getDeleteItemMutationOptions = <TError = ErrorResponse,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteItem>>, TError,{itemId: number}, TContext>, }
 ): UseMutationOptions<Awaited<ReturnType<typeof deleteItem>>, TError,{itemId: number}, TContext> => {
 
 const mutationKey = ['deleteItem'];
-const {mutation: mutationOptions, axios: axiosOptions} = options ?
+const {mutation: mutationOptions} = options ?
       options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
       options
       : {...options, mutation: {...options.mutation, mutationKey}}
-      : {mutation: { mutationKey, }, axios: undefined};
+      : {mutation: { mutationKey, }};
 
       
 
@@ -254,7 +253,7 @@ const {mutation: mutationOptions, axios: axiosOptions} = options ?
       const mutationFn: MutationFunction<Awaited<ReturnType<typeof deleteItem>>, {itemId: number}> = (props) => {
           const {itemId} = props ?? {};
 
-          return  deleteItem(itemId,axiosOptions)
+          return  deleteItem(itemId,)
         }
 
         
@@ -264,13 +263,13 @@ const {mutation: mutationOptions, axios: axiosOptions} = options ?
 
     export type DeleteItemMutationResult = NonNullable<Awaited<ReturnType<typeof deleteItem>>>
     
-    export type DeleteItemMutationError = AxiosError<ErrorResponse>
+    export type DeleteItemMutationError = ErrorResponse
 
     /**
  * @summary 대여 물품 삭제
  */
-export const useDeleteItem = <TError = AxiosError<ErrorResponse>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteItem>>, TError,{itemId: number}, TContext>, axios?: AxiosRequestConfig}
+export const useDeleteItem = <TError = ErrorResponse,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteItem>>, TError,{itemId: number}, TContext>, }
  , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof deleteItem>>,
         TError,
@@ -288,33 +287,34 @@ export const useDeleteItem = <TError = AxiosError<ErrorResponse>,
  * @summary 본인의 대여 기록 조회
  */
 export const getMemberRentalHistory = (
-    params?: GetMemberRentalHistoryParams, options?: AxiosRequestConfig
- ): Promise<AxiosResponse<RentalHistoryFindAllResponse>> => {
-    
-    
-    return axios.get(
-      `/rentals`,{
-    ...options,
-        params: {...params, ...options?.params},}
-    );
-  }
-
+    params?: GetMemberRentalHistoryParams,
+ signal?: AbortSignal
+) => {
+      
+      
+      return customMutator<RentalHistoryFindAllResponse>(
+      {url: `/rentals`, method: 'GET',
+        params, signal
+    },
+      );
+    }
+  
 
 export const getGetMemberRentalHistoryQueryKey = (params?: GetMemberRentalHistoryParams,) => {
     return [`/rentals`, ...(params ? [params]: [])] as const;
     }
 
     
-export const getGetMemberRentalHistoryQueryOptions = <TData = Awaited<ReturnType<typeof getMemberRentalHistory>>, TError = AxiosError<unknown>>(params?: GetMemberRentalHistoryParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getMemberRentalHistory>>, TError, TData>>, axios?: AxiosRequestConfig}
+export const getGetMemberRentalHistoryQueryOptions = <TData = Awaited<ReturnType<typeof getMemberRentalHistory>>, TError = unknown>(params?: GetMemberRentalHistoryParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getMemberRentalHistory>>, TError, TData>>, }
 ) => {
 
-const {query: queryOptions, axios: axiosOptions} = options ?? {};
+const {query: queryOptions} = options ?? {};
 
   const queryKey =  queryOptions?.queryKey ?? getGetMemberRentalHistoryQueryKey(params);
 
   
 
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof getMemberRentalHistory>>> = ({ signal }) => getMemberRentalHistory(params, { signal, ...axiosOptions });
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getMemberRentalHistory>>> = ({ signal }) => getMemberRentalHistory(params, signal);
 
       
 
@@ -324,39 +324,39 @@ const {query: queryOptions, axios: axiosOptions} = options ?? {};
 }
 
 export type GetMemberRentalHistoryQueryResult = NonNullable<Awaited<ReturnType<typeof getMemberRentalHistory>>>
-export type GetMemberRentalHistoryQueryError = AxiosError<unknown>
+export type GetMemberRentalHistoryQueryError = unknown
 
 
-export function useGetMemberRentalHistory<TData = Awaited<ReturnType<typeof getMemberRentalHistory>>, TError = AxiosError<unknown>>(
+export function useGetMemberRentalHistory<TData = Awaited<ReturnType<typeof getMemberRentalHistory>>, TError = unknown>(
  params: undefined |  GetMemberRentalHistoryParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getMemberRentalHistory>>, TError, TData>> & Pick<
         DefinedInitialDataOptions<
           Awaited<ReturnType<typeof getMemberRentalHistory>>,
           TError,
           Awaited<ReturnType<typeof getMemberRentalHistory>>
         > , 'initialData'
-      >, axios?: AxiosRequestConfig}
+      >, }
  , queryClient?: QueryClient
   ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetMemberRentalHistory<TData = Awaited<ReturnType<typeof getMemberRentalHistory>>, TError = AxiosError<unknown>>(
+export function useGetMemberRentalHistory<TData = Awaited<ReturnType<typeof getMemberRentalHistory>>, TError = unknown>(
  params?: GetMemberRentalHistoryParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getMemberRentalHistory>>, TError, TData>> & Pick<
         UndefinedInitialDataOptions<
           Awaited<ReturnType<typeof getMemberRentalHistory>>,
           TError,
           Awaited<ReturnType<typeof getMemberRentalHistory>>
         > , 'initialData'
-      >, axios?: AxiosRequestConfig}
+      >, }
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetMemberRentalHistory<TData = Awaited<ReturnType<typeof getMemberRentalHistory>>, TError = AxiosError<unknown>>(
- params?: GetMemberRentalHistoryParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getMemberRentalHistory>>, TError, TData>>, axios?: AxiosRequestConfig}
+export function useGetMemberRentalHistory<TData = Awaited<ReturnType<typeof getMemberRentalHistory>>, TError = unknown>(
+ params?: GetMemberRentalHistoryParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getMemberRentalHistory>>, TError, TData>>, }
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 /**
  * @summary 본인의 대여 기록 조회
  */
 
-export function useGetMemberRentalHistory<TData = Awaited<ReturnType<typeof getMemberRentalHistory>>, TError = AxiosError<unknown>>(
- params?: GetMemberRentalHistoryParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getMemberRentalHistory>>, TError, TData>>, axios?: AxiosRequestConfig}
+export function useGetMemberRentalHistory<TData = Awaited<ReturnType<typeof getMemberRentalHistory>>, TError = unknown>(
+ params?: GetMemberRentalHistoryParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getMemberRentalHistory>>, TError, TData>>, }
  , queryClient?: QueryClient 
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
 
@@ -377,28 +377,31 @@ export function useGetMemberRentalHistory<TData = Awaited<ReturnType<typeof getM
  * @summary 물품 대여 신청
  */
 export const createRental = (
-    rentalHistoryRequest: RentalHistoryRequest, options?: AxiosRequestConfig
- ): Promise<AxiosResponse<void>> => {
-    
-    
-    return axios.post(
-      `/rentals`,
-      rentalHistoryRequest,options
-    );
-  }
+    rentalHistoryRequest: RentalHistoryRequest,
+ signal?: AbortSignal
+) => {
+      
+      
+      return customMutator<void>(
+      {url: `/rentals`, method: 'POST',
+      headers: {'Content-Type': 'application/json', },
+      data: rentalHistoryRequest, signal
+    },
+      );
+    }
+  
 
 
-
-export const getCreateRentalMutationOptions = <TError = AxiosError<unknown>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createRental>>, TError,{data: RentalHistoryRequest}, TContext>, axios?: AxiosRequestConfig}
+export const getCreateRentalMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createRental>>, TError,{data: RentalHistoryRequest}, TContext>, }
 ): UseMutationOptions<Awaited<ReturnType<typeof createRental>>, TError,{data: RentalHistoryRequest}, TContext> => {
 
 const mutationKey = ['createRental'];
-const {mutation: mutationOptions, axios: axiosOptions} = options ?
+const {mutation: mutationOptions} = options ?
       options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
       options
       : {...options, mutation: {...options.mutation, mutationKey}}
-      : {mutation: { mutationKey, }, axios: undefined};
+      : {mutation: { mutationKey, }};
 
       
 
@@ -406,7 +409,7 @@ const {mutation: mutationOptions, axios: axiosOptions} = options ?
       const mutationFn: MutationFunction<Awaited<ReturnType<typeof createRental>>, {data: RentalHistoryRequest}> = (props) => {
           const {data} = props ?? {};
 
-          return  createRental(data,axiosOptions)
+          return  createRental(data,)
         }
 
         
@@ -416,13 +419,13 @@ const {mutation: mutationOptions, axios: axiosOptions} = options ?
 
     export type CreateRentalMutationResult = NonNullable<Awaited<ReturnType<typeof createRental>>>
     export type CreateRentalMutationBody = RentalHistoryRequest
-    export type CreateRentalMutationError = AxiosError<unknown>
+    export type CreateRentalMutationError = unknown
 
     /**
  * @summary 물품 대여 신청
  */
-export const useCreateRental = <TError = AxiosError<unknown>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createRental>>, TError,{data: RentalHistoryRequest}, TContext>, axios?: AxiosRequestConfig}
+export const useCreateRental = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createRental>>, TError,{data: RentalHistoryRequest}, TContext>, }
  , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof createRental>>,
         TError,
@@ -436,28 +439,31 @@ export const useCreateRental = <TError = AxiosError<unknown>,
     }
     
 export const createDevRental = (
-    rentalHistoryRequest: RentalHistoryRequest, options?: AxiosRequestConfig
- ): Promise<AxiosResponse<void>> => {
-    
-    
-    return axios.post(
-      `/rentals/dev`,
-      rentalHistoryRequest,options
-    );
-  }
+    rentalHistoryRequest: RentalHistoryRequest,
+ signal?: AbortSignal
+) => {
+      
+      
+      return customMutator<void>(
+      {url: `/rentals/dev`, method: 'POST',
+      headers: {'Content-Type': 'application/json', },
+      data: rentalHistoryRequest, signal
+    },
+      );
+    }
+  
 
 
-
-export const getCreateDevRentalMutationOptions = <TError = AxiosError<unknown>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createDevRental>>, TError,{data: RentalHistoryRequest}, TContext>, axios?: AxiosRequestConfig}
+export const getCreateDevRentalMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createDevRental>>, TError,{data: RentalHistoryRequest}, TContext>, }
 ): UseMutationOptions<Awaited<ReturnType<typeof createDevRental>>, TError,{data: RentalHistoryRequest}, TContext> => {
 
 const mutationKey = ['createDevRental'];
-const {mutation: mutationOptions, axios: axiosOptions} = options ?
+const {mutation: mutationOptions} = options ?
       options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
       options
       : {...options, mutation: {...options.mutation, mutationKey}}
-      : {mutation: { mutationKey, }, axios: undefined};
+      : {mutation: { mutationKey, }};
 
       
 
@@ -465,7 +471,7 @@ const {mutation: mutationOptions, axios: axiosOptions} = options ?
       const mutationFn: MutationFunction<Awaited<ReturnType<typeof createDevRental>>, {data: RentalHistoryRequest}> = (props) => {
           const {data} = props ?? {};
 
-          return  createDevRental(data,axiosOptions)
+          return  createDevRental(data,)
         }
 
         
@@ -475,10 +481,10 @@ const {mutation: mutationOptions, axios: axiosOptions} = options ?
 
     export type CreateDevRentalMutationResult = NonNullable<Awaited<ReturnType<typeof createDevRental>>>
     export type CreateDevRentalMutationBody = RentalHistoryRequest
-    export type CreateDevRentalMutationError = AxiosError<unknown>
+    export type CreateDevRentalMutationError = unknown
 
-    export const useCreateDevRental = <TError = AxiosError<unknown>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createDevRental>>, TError,{data: RentalHistoryRequest}, TContext>, axios?: AxiosRequestConfig}
+    export const useCreateDevRental = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createDevRental>>, TError,{data: RentalHistoryRequest}, TContext>, }
  , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof createDevRental>>,
         TError,
@@ -496,28 +502,31 @@ const {mutation: mutationOptions, axios: axiosOptions} = options ?
  * @summary FCM 토큰 전송
  */
 export const setFCMToken = (
-    memberFCMTokenRequest: MemberFCMTokenRequest, options?: AxiosRequestConfig
- ): Promise<AxiosResponse<void>> => {
-    
-    
-    return axios.post(
-      `/members/me/fcm-token`,
-      memberFCMTokenRequest,options
-    );
-  }
+    memberFCMTokenRequest: MemberFCMTokenRequest,
+ signal?: AbortSignal
+) => {
+      
+      
+      return customMutator<void>(
+      {url: `/members/me/fcm-token`, method: 'POST',
+      headers: {'Content-Type': 'application/json', },
+      data: memberFCMTokenRequest, signal
+    },
+      );
+    }
+  
 
 
-
-export const getSetFCMTokenMutationOptions = <TError = AxiosError<unknown>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof setFCMToken>>, TError,{data: MemberFCMTokenRequest}, TContext>, axios?: AxiosRequestConfig}
+export const getSetFCMTokenMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof setFCMToken>>, TError,{data: MemberFCMTokenRequest}, TContext>, }
 ): UseMutationOptions<Awaited<ReturnType<typeof setFCMToken>>, TError,{data: MemberFCMTokenRequest}, TContext> => {
 
 const mutationKey = ['setFCMToken'];
-const {mutation: mutationOptions, axios: axiosOptions} = options ?
+const {mutation: mutationOptions} = options ?
       options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
       options
       : {...options, mutation: {...options.mutation, mutationKey}}
-      : {mutation: { mutationKey, }, axios: undefined};
+      : {mutation: { mutationKey, }};
 
       
 
@@ -525,7 +534,7 @@ const {mutation: mutationOptions, axios: axiosOptions} = options ?
       const mutationFn: MutationFunction<Awaited<ReturnType<typeof setFCMToken>>, {data: MemberFCMTokenRequest}> = (props) => {
           const {data} = props ?? {};
 
-          return  setFCMToken(data,axiosOptions)
+          return  setFCMToken(data,)
         }
 
         
@@ -535,13 +544,13 @@ const {mutation: mutationOptions, axios: axiosOptions} = options ?
 
     export type SetFCMTokenMutationResult = NonNullable<Awaited<ReturnType<typeof setFCMToken>>>
     export type SetFCMTokenMutationBody = MemberFCMTokenRequest
-    export type SetFCMTokenMutationError = AxiosError<unknown>
+    export type SetFCMTokenMutationError = unknown
 
     /**
  * @summary FCM 토큰 전송
  */
-export const useSetFCMToken = <TError = AxiosError<unknown>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof setFCMToken>>, TError,{data: MemberFCMTokenRequest}, TContext>, axios?: AxiosRequestConfig}
+export const useSetFCMToken = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof setFCMToken>>, TError,{data: MemberFCMTokenRequest}, TContext>, }
  , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof setFCMToken>>,
         TError,
@@ -559,28 +568,31 @@ export const useSetFCMToken = <TError = AxiosError<unknown>,
  * @summary (구글 신규 가입 시) 회원가입
  */
 export const signUp = (
-    signUpRequest: SignUpRequest, options?: AxiosRequestConfig
- ): Promise<AxiosResponse<SignUpResponse>> => {
-    
-    
-    return axios.post(
-      `/auth/sign-up`,
-      signUpRequest,options
-    );
-  }
+    signUpRequest: SignUpRequest,
+ signal?: AbortSignal
+) => {
+      
+      
+      return customMutator<SignUpResponse>(
+      {url: `/auth/sign-up`, method: 'POST',
+      headers: {'Content-Type': 'application/json', },
+      data: signUpRequest, signal
+    },
+      );
+    }
+  
 
 
-
-export const getSignUpMutationOptions = <TError = AxiosError<unknown>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof signUp>>, TError,{data: SignUpRequest}, TContext>, axios?: AxiosRequestConfig}
+export const getSignUpMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof signUp>>, TError,{data: SignUpRequest}, TContext>, }
 ): UseMutationOptions<Awaited<ReturnType<typeof signUp>>, TError,{data: SignUpRequest}, TContext> => {
 
 const mutationKey = ['signUp'];
-const {mutation: mutationOptions, axios: axiosOptions} = options ?
+const {mutation: mutationOptions} = options ?
       options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
       options
       : {...options, mutation: {...options.mutation, mutationKey}}
-      : {mutation: { mutationKey, }, axios: undefined};
+      : {mutation: { mutationKey, }};
 
       
 
@@ -588,7 +600,7 @@ const {mutation: mutationOptions, axios: axiosOptions} = options ?
       const mutationFn: MutationFunction<Awaited<ReturnType<typeof signUp>>, {data: SignUpRequest}> = (props) => {
           const {data} = props ?? {};
 
-          return  signUp(data,axiosOptions)
+          return  signUp(data,)
         }
 
         
@@ -598,13 +610,13 @@ const {mutation: mutationOptions, axios: axiosOptions} = options ?
 
     export type SignUpMutationResult = NonNullable<Awaited<ReturnType<typeof signUp>>>
     export type SignUpMutationBody = SignUpRequest
-    export type SignUpMutationError = AxiosError<unknown>
+    export type SignUpMutationError = unknown
 
     /**
  * @summary (구글 신규 가입 시) 회원가입
  */
-export const useSignUp = <TError = AxiosError<unknown>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof signUp>>, TError,{data: SignUpRequest}, TContext>, axios?: AxiosRequestConfig}
+export const useSignUp = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof signUp>>, TError,{data: SignUpRequest}, TContext>, }
  , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof signUp>>,
         TError,
@@ -622,28 +634,31 @@ export const useSignUp = <TError = AxiosError<unknown>,
  * @summary (관리자 데스크탑) 로그인
  */
 export const loginAdmin = (
-    adminLoginRequest: AdminLoginRequest, options?: AxiosRequestConfig
- ): Promise<AxiosResponse<AdminLoginResponse>> => {
-    
-    
-    return axios.post(
-      `/auth/admin-login`,
-      adminLoginRequest,options
-    );
-  }
+    adminLoginRequest: AdminLoginRequest,
+ signal?: AbortSignal
+) => {
+      
+      
+      return customMutator<AdminLoginResponse>(
+      {url: `/auth/admin-login`, method: 'POST',
+      headers: {'Content-Type': 'application/json', },
+      data: adminLoginRequest, signal
+    },
+      );
+    }
+  
 
 
-
-export const getLoginAdminMutationOptions = <TError = AxiosError<ErrorResponse>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof loginAdmin>>, TError,{data: AdminLoginRequest}, TContext>, axios?: AxiosRequestConfig}
+export const getLoginAdminMutationOptions = <TError = ErrorResponse,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof loginAdmin>>, TError,{data: AdminLoginRequest}, TContext>, }
 ): UseMutationOptions<Awaited<ReturnType<typeof loginAdmin>>, TError,{data: AdminLoginRequest}, TContext> => {
 
 const mutationKey = ['loginAdmin'];
-const {mutation: mutationOptions, axios: axiosOptions} = options ?
+const {mutation: mutationOptions} = options ?
       options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
       options
       : {...options, mutation: {...options.mutation, mutationKey}}
-      : {mutation: { mutationKey, }, axios: undefined};
+      : {mutation: { mutationKey, }};
 
       
 
@@ -651,7 +666,7 @@ const {mutation: mutationOptions, axios: axiosOptions} = options ?
       const mutationFn: MutationFunction<Awaited<ReturnType<typeof loginAdmin>>, {data: AdminLoginRequest}> = (props) => {
           const {data} = props ?? {};
 
-          return  loginAdmin(data,axiosOptions)
+          return  loginAdmin(data,)
         }
 
         
@@ -661,13 +676,13 @@ const {mutation: mutationOptions, axios: axiosOptions} = options ?
 
     export type LoginAdminMutationResult = NonNullable<Awaited<ReturnType<typeof loginAdmin>>>
     export type LoginAdminMutationBody = AdminLoginRequest
-    export type LoginAdminMutationError = AxiosError<ErrorResponse>
+    export type LoginAdminMutationError = ErrorResponse
 
     /**
  * @summary (관리자 데스크탑) 로그인
  */
-export const useLoginAdmin = <TError = AxiosError<ErrorResponse>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof loginAdmin>>, TError,{data: AdminLoginRequest}, TContext>, axios?: AxiosRequestConfig}
+export const useLoginAdmin = <TError = ErrorResponse,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof loginAdmin>>, TError,{data: AdminLoginRequest}, TContext>, }
  , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof loginAdmin>>,
         TError,
@@ -685,33 +700,34 @@ export const useLoginAdmin = <TError = AxiosError<ErrorResponse>,
  * @summary 학생회비 납부자 목록 조회
  */
 export const getAllPayers = (
-    params?: GetAllPayersParams, options?: AxiosRequestConfig
- ): Promise<AxiosResponse<PayerFindAllResponse>> => {
-    
-    
-    return axios.get(
-      `/admin/members/payers`,{
-    ...options,
-        params: {...params, ...options?.params},}
-    );
-  }
-
+    params?: GetAllPayersParams,
+ signal?: AbortSignal
+) => {
+      
+      
+      return customMutator<PayerFindAllResponse>(
+      {url: `/admin/members/payers`, method: 'GET',
+        params, signal
+    },
+      );
+    }
+  
 
 export const getGetAllPayersQueryKey = (params?: GetAllPayersParams,) => {
     return [`/admin/members/payers`, ...(params ? [params]: [])] as const;
     }
 
     
-export const getGetAllPayersQueryOptions = <TData = Awaited<ReturnType<typeof getAllPayers>>, TError = AxiosError<unknown>>(params?: GetAllPayersParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getAllPayers>>, TError, TData>>, axios?: AxiosRequestConfig}
+export const getGetAllPayersQueryOptions = <TData = Awaited<ReturnType<typeof getAllPayers>>, TError = unknown>(params?: GetAllPayersParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getAllPayers>>, TError, TData>>, }
 ) => {
 
-const {query: queryOptions, axios: axiosOptions} = options ?? {};
+const {query: queryOptions} = options ?? {};
 
   const queryKey =  queryOptions?.queryKey ?? getGetAllPayersQueryKey(params);
 
   
 
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof getAllPayers>>> = ({ signal }) => getAllPayers(params, { signal, ...axiosOptions });
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getAllPayers>>> = ({ signal }) => getAllPayers(params, signal);
 
       
 
@@ -721,39 +737,39 @@ const {query: queryOptions, axios: axiosOptions} = options ?? {};
 }
 
 export type GetAllPayersQueryResult = NonNullable<Awaited<ReturnType<typeof getAllPayers>>>
-export type GetAllPayersQueryError = AxiosError<unknown>
+export type GetAllPayersQueryError = unknown
 
 
-export function useGetAllPayers<TData = Awaited<ReturnType<typeof getAllPayers>>, TError = AxiosError<unknown>>(
+export function useGetAllPayers<TData = Awaited<ReturnType<typeof getAllPayers>>, TError = unknown>(
  params: undefined |  GetAllPayersParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getAllPayers>>, TError, TData>> & Pick<
         DefinedInitialDataOptions<
           Awaited<ReturnType<typeof getAllPayers>>,
           TError,
           Awaited<ReturnType<typeof getAllPayers>>
         > , 'initialData'
-      >, axios?: AxiosRequestConfig}
+      >, }
  , queryClient?: QueryClient
   ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetAllPayers<TData = Awaited<ReturnType<typeof getAllPayers>>, TError = AxiosError<unknown>>(
+export function useGetAllPayers<TData = Awaited<ReturnType<typeof getAllPayers>>, TError = unknown>(
  params?: GetAllPayersParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getAllPayers>>, TError, TData>> & Pick<
         UndefinedInitialDataOptions<
           Awaited<ReturnType<typeof getAllPayers>>,
           TError,
           Awaited<ReturnType<typeof getAllPayers>>
         > , 'initialData'
-      >, axios?: AxiosRequestConfig}
+      >, }
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetAllPayers<TData = Awaited<ReturnType<typeof getAllPayers>>, TError = AxiosError<unknown>>(
- params?: GetAllPayersParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getAllPayers>>, TError, TData>>, axios?: AxiosRequestConfig}
+export function useGetAllPayers<TData = Awaited<ReturnType<typeof getAllPayers>>, TError = unknown>(
+ params?: GetAllPayersParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getAllPayers>>, TError, TData>>, }
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 /**
  * @summary 학생회비 납부자 목록 조회
  */
 
-export function useGetAllPayers<TData = Awaited<ReturnType<typeof getAllPayers>>, TError = AxiosError<unknown>>(
- params?: GetAllPayersParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getAllPayers>>, TError, TData>>, axios?: AxiosRequestConfig}
+export function useGetAllPayers<TData = Awaited<ReturnType<typeof getAllPayers>>, TError = unknown>(
+ params?: GetAllPayersParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getAllPayers>>, TError, TData>>, }
  , queryClient?: QueryClient 
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
 
@@ -774,28 +790,31 @@ export function useGetAllPayers<TData = Awaited<ReturnType<typeof getAllPayers>>
  * @summary 학생회비 납부자 추가
  */
 export const addPayers = (
-    payerRequest: PayerRequest, options?: AxiosRequestConfig
- ): Promise<AxiosResponse<void>> => {
-    
-    
-    return axios.post(
-      `/admin/members/payers`,
-      payerRequest,options
-    );
-  }
+    payerRequest: PayerRequest,
+ signal?: AbortSignal
+) => {
+      
+      
+      return customMutator<void>(
+      {url: `/admin/members/payers`, method: 'POST',
+      headers: {'Content-Type': 'application/json', },
+      data: payerRequest, signal
+    },
+      );
+    }
+  
 
 
-
-export const getAddPayersMutationOptions = <TError = AxiosError<unknown>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof addPayers>>, TError,{data: PayerRequest}, TContext>, axios?: AxiosRequestConfig}
+export const getAddPayersMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof addPayers>>, TError,{data: PayerRequest}, TContext>, }
 ): UseMutationOptions<Awaited<ReturnType<typeof addPayers>>, TError,{data: PayerRequest}, TContext> => {
 
 const mutationKey = ['addPayers'];
-const {mutation: mutationOptions, axios: axiosOptions} = options ?
+const {mutation: mutationOptions} = options ?
       options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
       options
       : {...options, mutation: {...options.mutation, mutationKey}}
-      : {mutation: { mutationKey, }, axios: undefined};
+      : {mutation: { mutationKey, }};
 
       
 
@@ -803,7 +822,7 @@ const {mutation: mutationOptions, axios: axiosOptions} = options ?
       const mutationFn: MutationFunction<Awaited<ReturnType<typeof addPayers>>, {data: PayerRequest}> = (props) => {
           const {data} = props ?? {};
 
-          return  addPayers(data,axiosOptions)
+          return  addPayers(data,)
         }
 
         
@@ -813,13 +832,13 @@ const {mutation: mutationOptions, axios: axiosOptions} = options ?
 
     export type AddPayersMutationResult = NonNullable<Awaited<ReturnType<typeof addPayers>>>
     export type AddPayersMutationBody = PayerRequest
-    export type AddPayersMutationError = AxiosError<unknown>
+    export type AddPayersMutationError = unknown
 
     /**
  * @summary 학생회비 납부자 추가
  */
-export const useAddPayers = <TError = AxiosError<unknown>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof addPayers>>, TError,{data: PayerRequest}, TContext>, axios?: AxiosRequestConfig}
+export const useAddPayers = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof addPayers>>, TError,{data: PayerRequest}, TContext>, }
  , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof addPayers>>,
         TError,
@@ -837,28 +856,30 @@ export const useAddPayers = <TError = AxiosError<unknown>,
  * @summary 학생회비 납부자 삭제
  */
 export const deletePayers = (
-    payerDeleteRequest: PayerDeleteRequest, options?: AxiosRequestConfig
- ): Promise<AxiosResponse<void>> => {
-    
-    
-    return axios.delete(
-      `/admin/members/payers`,{data:
-      payerDeleteRequest, ...options}
-    );
-  }
+    payerDeleteRequest: PayerDeleteRequest,
+ ) => {
+      
+      
+      return customMutator<void>(
+      {url: `/admin/members/payers`, method: 'DELETE',
+      headers: {'Content-Type': 'application/json', },
+      data: payerDeleteRequest
+    },
+      );
+    }
+  
 
 
-
-export const getDeletePayersMutationOptions = <TError = AxiosError<unknown>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deletePayers>>, TError,{data: PayerDeleteRequest}, TContext>, axios?: AxiosRequestConfig}
+export const getDeletePayersMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deletePayers>>, TError,{data: PayerDeleteRequest}, TContext>, }
 ): UseMutationOptions<Awaited<ReturnType<typeof deletePayers>>, TError,{data: PayerDeleteRequest}, TContext> => {
 
 const mutationKey = ['deletePayers'];
-const {mutation: mutationOptions, axios: axiosOptions} = options ?
+const {mutation: mutationOptions} = options ?
       options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
       options
       : {...options, mutation: {...options.mutation, mutationKey}}
-      : {mutation: { mutationKey, }, axios: undefined};
+      : {mutation: { mutationKey, }};
 
       
 
@@ -866,7 +887,7 @@ const {mutation: mutationOptions, axios: axiosOptions} = options ?
       const mutationFn: MutationFunction<Awaited<ReturnType<typeof deletePayers>>, {data: PayerDeleteRequest}> = (props) => {
           const {data} = props ?? {};
 
-          return  deletePayers(data,axiosOptions)
+          return  deletePayers(data,)
         }
 
         
@@ -876,13 +897,13 @@ const {mutation: mutationOptions, axios: axiosOptions} = options ?
 
     export type DeletePayersMutationResult = NonNullable<Awaited<ReturnType<typeof deletePayers>>>
     export type DeletePayersMutationBody = PayerDeleteRequest
-    export type DeletePayersMutationError = AxiosError<unknown>
+    export type DeletePayersMutationError = unknown
 
     /**
  * @summary 학생회비 납부자 삭제
  */
-export const useDeletePayers = <TError = AxiosError<unknown>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deletePayers>>, TError,{data: PayerDeleteRequest}, TContext>, axios?: AxiosRequestConfig}
+export const useDeletePayers = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deletePayers>>, TError,{data: PayerDeleteRequest}, TContext>, }
  , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof deletePayers>>,
         TError,
@@ -900,33 +921,34 @@ export const useDeletePayers = <TError = AxiosError<unknown>,
  * @summary 관리자 목록 조회
  */
 export const getAdminList = (
-    params?: GetAdminListParams, options?: AxiosRequestConfig
- ): Promise<AxiosResponse<AdminFindAllResponse>> => {
-    
-    
-    return axios.get(
-      `/admin/members/admins`,{
-    ...options,
-        params: {...params, ...options?.params},}
-    );
-  }
-
+    params?: GetAdminListParams,
+ signal?: AbortSignal
+) => {
+      
+      
+      return customMutator<AdminFindAllResponse>(
+      {url: `/admin/members/admins`, method: 'GET',
+        params, signal
+    },
+      );
+    }
+  
 
 export const getGetAdminListQueryKey = (params?: GetAdminListParams,) => {
     return [`/admin/members/admins`, ...(params ? [params]: [])] as const;
     }
 
     
-export const getGetAdminListQueryOptions = <TData = Awaited<ReturnType<typeof getAdminList>>, TError = AxiosError<unknown>>(params?: GetAdminListParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getAdminList>>, TError, TData>>, axios?: AxiosRequestConfig}
+export const getGetAdminListQueryOptions = <TData = Awaited<ReturnType<typeof getAdminList>>, TError = unknown>(params?: GetAdminListParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getAdminList>>, TError, TData>>, }
 ) => {
 
-const {query: queryOptions, axios: axiosOptions} = options ?? {};
+const {query: queryOptions} = options ?? {};
 
   const queryKey =  queryOptions?.queryKey ?? getGetAdminListQueryKey(params);
 
   
 
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof getAdminList>>> = ({ signal }) => getAdminList(params, { signal, ...axiosOptions });
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getAdminList>>> = ({ signal }) => getAdminList(params, signal);
 
       
 
@@ -936,39 +958,39 @@ const {query: queryOptions, axios: axiosOptions} = options ?? {};
 }
 
 export type GetAdminListQueryResult = NonNullable<Awaited<ReturnType<typeof getAdminList>>>
-export type GetAdminListQueryError = AxiosError<unknown>
+export type GetAdminListQueryError = unknown
 
 
-export function useGetAdminList<TData = Awaited<ReturnType<typeof getAdminList>>, TError = AxiosError<unknown>>(
+export function useGetAdminList<TData = Awaited<ReturnType<typeof getAdminList>>, TError = unknown>(
  params: undefined |  GetAdminListParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getAdminList>>, TError, TData>> & Pick<
         DefinedInitialDataOptions<
           Awaited<ReturnType<typeof getAdminList>>,
           TError,
           Awaited<ReturnType<typeof getAdminList>>
         > , 'initialData'
-      >, axios?: AxiosRequestConfig}
+      >, }
  , queryClient?: QueryClient
   ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetAdminList<TData = Awaited<ReturnType<typeof getAdminList>>, TError = AxiosError<unknown>>(
+export function useGetAdminList<TData = Awaited<ReturnType<typeof getAdminList>>, TError = unknown>(
  params?: GetAdminListParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getAdminList>>, TError, TData>> & Pick<
         UndefinedInitialDataOptions<
           Awaited<ReturnType<typeof getAdminList>>,
           TError,
           Awaited<ReturnType<typeof getAdminList>>
         > , 'initialData'
-      >, axios?: AxiosRequestConfig}
+      >, }
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetAdminList<TData = Awaited<ReturnType<typeof getAdminList>>, TError = AxiosError<unknown>>(
- params?: GetAdminListParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getAdminList>>, TError, TData>>, axios?: AxiosRequestConfig}
+export function useGetAdminList<TData = Awaited<ReturnType<typeof getAdminList>>, TError = unknown>(
+ params?: GetAdminListParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getAdminList>>, TError, TData>>, }
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 /**
  * @summary 관리자 목록 조회
  */
 
-export function useGetAdminList<TData = Awaited<ReturnType<typeof getAdminList>>, TError = AxiosError<unknown>>(
- params?: GetAdminListParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getAdminList>>, TError, TData>>, axios?: AxiosRequestConfig}
+export function useGetAdminList<TData = Awaited<ReturnType<typeof getAdminList>>, TError = unknown>(
+ params?: GetAdminListParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getAdminList>>, TError, TData>>, }
  , queryClient?: QueryClient 
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
 
@@ -989,28 +1011,31 @@ export function useGetAdminList<TData = Awaited<ReturnType<typeof getAdminList>>
  * @summary 관리자 추가
  */
 export const addAdmins = (
-    adminRequest: AdminRequest, options?: AxiosRequestConfig
- ): Promise<AxiosResponse<void>> => {
-    
-    
-    return axios.post(
-      `/admin/members/admins`,
-      adminRequest,options
-    );
-  }
+    adminRequest: AdminRequest,
+ signal?: AbortSignal
+) => {
+      
+      
+      return customMutator<void>(
+      {url: `/admin/members/admins`, method: 'POST',
+      headers: {'Content-Type': 'application/json', },
+      data: adminRequest, signal
+    },
+      );
+    }
+  
 
 
-
-export const getAddAdminsMutationOptions = <TError = AxiosError<unknown>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof addAdmins>>, TError,{data: AdminRequest}, TContext>, axios?: AxiosRequestConfig}
+export const getAddAdminsMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof addAdmins>>, TError,{data: AdminRequest}, TContext>, }
 ): UseMutationOptions<Awaited<ReturnType<typeof addAdmins>>, TError,{data: AdminRequest}, TContext> => {
 
 const mutationKey = ['addAdmins'];
-const {mutation: mutationOptions, axios: axiosOptions} = options ?
+const {mutation: mutationOptions} = options ?
       options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
       options
       : {...options, mutation: {...options.mutation, mutationKey}}
-      : {mutation: { mutationKey, }, axios: undefined};
+      : {mutation: { mutationKey, }};
 
       
 
@@ -1018,7 +1043,7 @@ const {mutation: mutationOptions, axios: axiosOptions} = options ?
       const mutationFn: MutationFunction<Awaited<ReturnType<typeof addAdmins>>, {data: AdminRequest}> = (props) => {
           const {data} = props ?? {};
 
-          return  addAdmins(data,axiosOptions)
+          return  addAdmins(data,)
         }
 
         
@@ -1028,13 +1053,13 @@ const {mutation: mutationOptions, axios: axiosOptions} = options ?
 
     export type AddAdminsMutationResult = NonNullable<Awaited<ReturnType<typeof addAdmins>>>
     export type AddAdminsMutationBody = AdminRequest
-    export type AddAdminsMutationError = AxiosError<unknown>
+    export type AddAdminsMutationError = unknown
 
     /**
  * @summary 관리자 추가
  */
-export const useAddAdmins = <TError = AxiosError<unknown>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof addAdmins>>, TError,{data: AdminRequest}, TContext>, axios?: AxiosRequestConfig}
+export const useAddAdmins = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof addAdmins>>, TError,{data: AdminRequest}, TContext>, }
  , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof addAdmins>>,
         TError,
@@ -1052,28 +1077,30 @@ export const useAddAdmins = <TError = AxiosError<unknown>,
  * @summary 관리자 삭제
  */
 export const deleteAdmins = (
-    adminRequest: AdminRequest, options?: AxiosRequestConfig
- ): Promise<AxiosResponse<void>> => {
-    
-    
-    return axios.delete(
-      `/admin/members/admins`,{data:
-      adminRequest, ...options}
-    );
-  }
+    adminRequest: AdminRequest,
+ ) => {
+      
+      
+      return customMutator<void>(
+      {url: `/admin/members/admins`, method: 'DELETE',
+      headers: {'Content-Type': 'application/json', },
+      data: adminRequest
+    },
+      );
+    }
+  
 
 
-
-export const getDeleteAdminsMutationOptions = <TError = AxiosError<unknown>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteAdmins>>, TError,{data: AdminRequest}, TContext>, axios?: AxiosRequestConfig}
+export const getDeleteAdminsMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteAdmins>>, TError,{data: AdminRequest}, TContext>, }
 ): UseMutationOptions<Awaited<ReturnType<typeof deleteAdmins>>, TError,{data: AdminRequest}, TContext> => {
 
 const mutationKey = ['deleteAdmins'];
-const {mutation: mutationOptions, axios: axiosOptions} = options ?
+const {mutation: mutationOptions} = options ?
       options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
       options
       : {...options, mutation: {...options.mutation, mutationKey}}
-      : {mutation: { mutationKey, }, axios: undefined};
+      : {mutation: { mutationKey, }};
 
       
 
@@ -1081,7 +1108,7 @@ const {mutation: mutationOptions, axios: axiosOptions} = options ?
       const mutationFn: MutationFunction<Awaited<ReturnType<typeof deleteAdmins>>, {data: AdminRequest}> = (props) => {
           const {data} = props ?? {};
 
-          return  deleteAdmins(data,axiosOptions)
+          return  deleteAdmins(data,)
         }
 
         
@@ -1091,13 +1118,13 @@ const {mutation: mutationOptions, axios: axiosOptions} = options ?
 
     export type DeleteAdminsMutationResult = NonNullable<Awaited<ReturnType<typeof deleteAdmins>>>
     export type DeleteAdminsMutationBody = AdminRequest
-    export type DeleteAdminsMutationError = AxiosError<unknown>
+    export type DeleteAdminsMutationError = unknown
 
     /**
  * @summary 관리자 삭제
  */
-export const useDeleteAdmins = <TError = AxiosError<unknown>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteAdmins>>, TError,{data: AdminRequest}, TContext>, axios?: AxiosRequestConfig}
+export const useDeleteAdmins = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteAdmins>>, TError,{data: AdminRequest}, TContext>, }
  , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof deleteAdmins>>,
         TError,
@@ -1115,33 +1142,34 @@ export const useDeleteAdmins = <TError = AxiosError<unknown>,
  * @summary 대여 물품 목록 조회
  */
 export const getAllAdminItems = (
-    params?: GetAllAdminItemsParams, options?: AxiosRequestConfig
- ): Promise<AxiosResponse<AdminItemFindAllResponse>> => {
-    
-    
-    return axios.get(
-      `/admin/items`,{
-    ...options,
-        params: {...params, ...options?.params},}
-    );
-  }
-
+    params?: GetAllAdminItemsParams,
+ signal?: AbortSignal
+) => {
+      
+      
+      return customMutator<AdminItemFindAllResponse>(
+      {url: `/admin/items`, method: 'GET',
+        params, signal
+    },
+      );
+    }
+  
 
 export const getGetAllAdminItemsQueryKey = (params?: GetAllAdminItemsParams,) => {
     return [`/admin/items`, ...(params ? [params]: [])] as const;
     }
 
     
-export const getGetAllAdminItemsQueryOptions = <TData = Awaited<ReturnType<typeof getAllAdminItems>>, TError = AxiosError<unknown>>(params?: GetAllAdminItemsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getAllAdminItems>>, TError, TData>>, axios?: AxiosRequestConfig}
+export const getGetAllAdminItemsQueryOptions = <TData = Awaited<ReturnType<typeof getAllAdminItems>>, TError = unknown>(params?: GetAllAdminItemsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getAllAdminItems>>, TError, TData>>, }
 ) => {
 
-const {query: queryOptions, axios: axiosOptions} = options ?? {};
+const {query: queryOptions} = options ?? {};
 
   const queryKey =  queryOptions?.queryKey ?? getGetAllAdminItemsQueryKey(params);
 
   
 
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof getAllAdminItems>>> = ({ signal }) => getAllAdminItems(params, { signal, ...axiosOptions });
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getAllAdminItems>>> = ({ signal }) => getAllAdminItems(params, signal);
 
       
 
@@ -1151,39 +1179,39 @@ const {query: queryOptions, axios: axiosOptions} = options ?? {};
 }
 
 export type GetAllAdminItemsQueryResult = NonNullable<Awaited<ReturnType<typeof getAllAdminItems>>>
-export type GetAllAdminItemsQueryError = AxiosError<unknown>
+export type GetAllAdminItemsQueryError = unknown
 
 
-export function useGetAllAdminItems<TData = Awaited<ReturnType<typeof getAllAdminItems>>, TError = AxiosError<unknown>>(
+export function useGetAllAdminItems<TData = Awaited<ReturnType<typeof getAllAdminItems>>, TError = unknown>(
  params: undefined |  GetAllAdminItemsParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getAllAdminItems>>, TError, TData>> & Pick<
         DefinedInitialDataOptions<
           Awaited<ReturnType<typeof getAllAdminItems>>,
           TError,
           Awaited<ReturnType<typeof getAllAdminItems>>
         > , 'initialData'
-      >, axios?: AxiosRequestConfig}
+      >, }
  , queryClient?: QueryClient
   ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetAllAdminItems<TData = Awaited<ReturnType<typeof getAllAdminItems>>, TError = AxiosError<unknown>>(
+export function useGetAllAdminItems<TData = Awaited<ReturnType<typeof getAllAdminItems>>, TError = unknown>(
  params?: GetAllAdminItemsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getAllAdminItems>>, TError, TData>> & Pick<
         UndefinedInitialDataOptions<
           Awaited<ReturnType<typeof getAllAdminItems>>,
           TError,
           Awaited<ReturnType<typeof getAllAdminItems>>
         > , 'initialData'
-      >, axios?: AxiosRequestConfig}
+      >, }
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetAllAdminItems<TData = Awaited<ReturnType<typeof getAllAdminItems>>, TError = AxiosError<unknown>>(
- params?: GetAllAdminItemsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getAllAdminItems>>, TError, TData>>, axios?: AxiosRequestConfig}
+export function useGetAllAdminItems<TData = Awaited<ReturnType<typeof getAllAdminItems>>, TError = unknown>(
+ params?: GetAllAdminItemsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getAllAdminItems>>, TError, TData>>, }
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 /**
  * @summary 대여 물품 목록 조회
  */
 
-export function useGetAllAdminItems<TData = Awaited<ReturnType<typeof getAllAdminItems>>, TError = AxiosError<unknown>>(
- params?: GetAllAdminItemsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getAllAdminItems>>, TError, TData>>, axios?: AxiosRequestConfig}
+export function useGetAllAdminItems<TData = Awaited<ReturnType<typeof getAllAdminItems>>, TError = unknown>(
+ params?: GetAllAdminItemsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getAllAdminItems>>, TError, TData>>, }
  , queryClient?: QueryClient 
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
 
@@ -1204,31 +1232,34 @@ export function useGetAllAdminItems<TData = Awaited<ReturnType<typeof getAllAdmi
  * @summary 대여 물품 등록
  */
 export const addItem = (
-    addItemBody: AddItemBody, options?: AxiosRequestConfig
- ): Promise<AxiosResponse<void>> => {
-    
-    const formData = new FormData();
+    addItemBody: AddItemBody,
+ signal?: AbortSignal
+) => {
+      
+      const formData = new FormData();
 formData.append(`image`, addItemBody.image)
 formData.append(`itemRequest`, JSON.stringify(addItemBody.itemRequest));
 
-    return axios.post(
-      `/admin/items`,
-      formData,options
-    );
-  }
+      return customMutator<void>(
+      {url: `/admin/items`, method: 'POST',
+      headers: {'Content-Type': 'multipart/form-data', },
+       data: formData, signal
+    },
+      );
+    }
+  
 
 
-
-export const getAddItemMutationOptions = <TError = AxiosError<ErrorResponse>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof addItem>>, TError,{data: AddItemBody}, TContext>, axios?: AxiosRequestConfig}
+export const getAddItemMutationOptions = <TError = ErrorResponse,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof addItem>>, TError,{data: AddItemBody}, TContext>, }
 ): UseMutationOptions<Awaited<ReturnType<typeof addItem>>, TError,{data: AddItemBody}, TContext> => {
 
 const mutationKey = ['addItem'];
-const {mutation: mutationOptions, axios: axiosOptions} = options ?
+const {mutation: mutationOptions} = options ?
       options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
       options
       : {...options, mutation: {...options.mutation, mutationKey}}
-      : {mutation: { mutationKey, }, axios: undefined};
+      : {mutation: { mutationKey, }};
 
       
 
@@ -1236,7 +1267,7 @@ const {mutation: mutationOptions, axios: axiosOptions} = options ?
       const mutationFn: MutationFunction<Awaited<ReturnType<typeof addItem>>, {data: AddItemBody}> = (props) => {
           const {data} = props ?? {};
 
-          return  addItem(data,axiosOptions)
+          return  addItem(data,)
         }
 
         
@@ -1246,13 +1277,13 @@ const {mutation: mutationOptions, axios: axiosOptions} = options ?
 
     export type AddItemMutationResult = NonNullable<Awaited<ReturnType<typeof addItem>>>
     export type AddItemMutationBody = AddItemBody
-    export type AddItemMutationError = AxiosError<ErrorResponse>
+    export type AddItemMutationError = ErrorResponse
 
     /**
  * @summary 대여 물품 등록
  */
-export const useAddItem = <TError = AxiosError<ErrorResponse>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof addItem>>, TError,{data: AddItemBody}, TContext>, axios?: AxiosRequestConfig}
+export const useAddItem = <TError = ErrorResponse,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof addItem>>, TError,{data: AddItemBody}, TContext>, }
  , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof addItem>>,
         TError,
@@ -1270,27 +1301,28 @@ export const useAddItem = <TError = AxiosError<ErrorResponse>,
  * @summary 대여 취소
  */
 export const cancelRental = (
-    rentalHistoryId: number, options?: AxiosRequestConfig
- ): Promise<AxiosResponse<void>> => {
-    
-    
-    return axios.patch(
-      `/rentals/${rentalHistoryId}`,undefined,options
-    );
-  }
+    rentalHistoryId: number,
+ ) => {
+      
+      
+      return customMutator<void>(
+      {url: `/rentals/${rentalHistoryId}`, method: 'PATCH'
+    },
+      );
+    }
+  
 
 
-
-export const getCancelRentalMutationOptions = <TError = AxiosError<unknown>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof cancelRental>>, TError,{rentalHistoryId: number}, TContext>, axios?: AxiosRequestConfig}
+export const getCancelRentalMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof cancelRental>>, TError,{rentalHistoryId: number}, TContext>, }
 ): UseMutationOptions<Awaited<ReturnType<typeof cancelRental>>, TError,{rentalHistoryId: number}, TContext> => {
 
 const mutationKey = ['cancelRental'];
-const {mutation: mutationOptions, axios: axiosOptions} = options ?
+const {mutation: mutationOptions} = options ?
       options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
       options
       : {...options, mutation: {...options.mutation, mutationKey}}
-      : {mutation: { mutationKey, }, axios: undefined};
+      : {mutation: { mutationKey, }};
 
       
 
@@ -1298,7 +1330,7 @@ const {mutation: mutationOptions, axios: axiosOptions} = options ?
       const mutationFn: MutationFunction<Awaited<ReturnType<typeof cancelRental>>, {rentalHistoryId: number}> = (props) => {
           const {rentalHistoryId} = props ?? {};
 
-          return  cancelRental(rentalHistoryId,axiosOptions)
+          return  cancelRental(rentalHistoryId,)
         }
 
         
@@ -1308,13 +1340,13 @@ const {mutation: mutationOptions, axios: axiosOptions} = options ?
 
     export type CancelRentalMutationResult = NonNullable<Awaited<ReturnType<typeof cancelRental>>>
     
-    export type CancelRentalMutationError = AxiosError<unknown>
+    export type CancelRentalMutationError = unknown
 
     /**
  * @summary 대여 취소
  */
-export const useCancelRental = <TError = AxiosError<unknown>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof cancelRental>>, TError,{rentalHistoryId: number}, TContext>, axios?: AxiosRequestConfig}
+export const useCancelRental = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof cancelRental>>, TError,{rentalHistoryId: number}, TContext>, }
  , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof cancelRental>>,
         TError,
@@ -1332,27 +1364,28 @@ export const useCancelRental = <TError = AxiosError<unknown>,
  * @summary 반납 신청
  */
 export const returnRental = (
-    rentalHistoryId: number, options?: AxiosRequestConfig
- ): Promise<AxiosResponse<void>> => {
-    
-    
-    return axios.patch(
-      `/rentals/return/${rentalHistoryId}`,undefined,options
-    );
-  }
+    rentalHistoryId: number,
+ ) => {
+      
+      
+      return customMutator<void>(
+      {url: `/rentals/return/${rentalHistoryId}`, method: 'PATCH'
+    },
+      );
+    }
+  
 
 
-
-export const getReturnRentalMutationOptions = <TError = AxiosError<unknown>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof returnRental>>, TError,{rentalHistoryId: number}, TContext>, axios?: AxiosRequestConfig}
+export const getReturnRentalMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof returnRental>>, TError,{rentalHistoryId: number}, TContext>, }
 ): UseMutationOptions<Awaited<ReturnType<typeof returnRental>>, TError,{rentalHistoryId: number}, TContext> => {
 
 const mutationKey = ['returnRental'];
-const {mutation: mutationOptions, axios: axiosOptions} = options ?
+const {mutation: mutationOptions} = options ?
       options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
       options
       : {...options, mutation: {...options.mutation, mutationKey}}
-      : {mutation: { mutationKey, }, axios: undefined};
+      : {mutation: { mutationKey, }};
 
       
 
@@ -1360,7 +1393,7 @@ const {mutation: mutationOptions, axios: axiosOptions} = options ?
       const mutationFn: MutationFunction<Awaited<ReturnType<typeof returnRental>>, {rentalHistoryId: number}> = (props) => {
           const {rentalHistoryId} = props ?? {};
 
-          return  returnRental(rentalHistoryId,axiosOptions)
+          return  returnRental(rentalHistoryId,)
         }
 
         
@@ -1370,13 +1403,13 @@ const {mutation: mutationOptions, axios: axiosOptions} = options ?
 
     export type ReturnRentalMutationResult = NonNullable<Awaited<ReturnType<typeof returnRental>>>
     
-    export type ReturnRentalMutationError = AxiosError<unknown>
+    export type ReturnRentalMutationError = unknown
 
     /**
  * @summary 반납 신청
  */
-export const useReturnRental = <TError = AxiosError<unknown>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof returnRental>>, TError,{rentalHistoryId: number}, TContext>, axios?: AxiosRequestConfig}
+export const useReturnRental = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof returnRental>>, TError,{rentalHistoryId: number}, TContext>, }
  , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof returnRental>>,
         TError,
@@ -1394,27 +1427,28 @@ export const useReturnRental = <TError = AxiosError<unknown>,
  * @summary 알림 읽음 처리
  */
 export const readNotification = (
-    notificationId: number, options?: AxiosRequestConfig
- ): Promise<AxiosResponse<void>> => {
-    
-    
-    return axios.patch(
-      `/notifications/${notificationId}`,undefined,options
-    );
-  }
+    notificationId: number,
+ ) => {
+      
+      
+      return customMutator<void>(
+      {url: `/notifications/${notificationId}`, method: 'PATCH'
+    },
+      );
+    }
+  
 
 
-
-export const getReadNotificationMutationOptions = <TError = AxiosError<void>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof readNotification>>, TError,{notificationId: number}, TContext>, axios?: AxiosRequestConfig}
+export const getReadNotificationMutationOptions = <TError = void,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof readNotification>>, TError,{notificationId: number}, TContext>, }
 ): UseMutationOptions<Awaited<ReturnType<typeof readNotification>>, TError,{notificationId: number}, TContext> => {
 
 const mutationKey = ['readNotification'];
-const {mutation: mutationOptions, axios: axiosOptions} = options ?
+const {mutation: mutationOptions} = options ?
       options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
       options
       : {...options, mutation: {...options.mutation, mutationKey}}
-      : {mutation: { mutationKey, }, axios: undefined};
+      : {mutation: { mutationKey, }};
 
       
 
@@ -1422,7 +1456,7 @@ const {mutation: mutationOptions, axios: axiosOptions} = options ?
       const mutationFn: MutationFunction<Awaited<ReturnType<typeof readNotification>>, {notificationId: number}> = (props) => {
           const {notificationId} = props ?? {};
 
-          return  readNotification(notificationId,axiosOptions)
+          return  readNotification(notificationId,)
         }
 
         
@@ -1432,13 +1466,13 @@ const {mutation: mutationOptions, axios: axiosOptions} = options ?
 
     export type ReadNotificationMutationResult = NonNullable<Awaited<ReturnType<typeof readNotification>>>
     
-    export type ReadNotificationMutationError = AxiosError<void>
+    export type ReadNotificationMutationError = void
 
     /**
  * @summary 알림 읽음 처리
  */
-export const useReadNotification = <TError = AxiosError<void>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof readNotification>>, TError,{notificationId: number}, TContext>, axios?: AxiosRequestConfig}
+export const useReadNotification = <TError = void,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof readNotification>>, TError,{notificationId: number}, TContext>, }
  , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof readNotification>>,
         TError,
@@ -1456,27 +1490,28 @@ export const useReadNotification = <TError = AxiosError<void>,
  * @summary 알림 모두 읽음 처리
  */
 export const readAllNotifications = (
-     options?: AxiosRequestConfig
- ): Promise<AxiosResponse<void>> => {
     
-    
-    return axios.patch(
-      `/notifications/all`,undefined,options
-    );
-  }
+ ) => {
+      
+      
+      return customMutator<void>(
+      {url: `/notifications/all`, method: 'PATCH'
+    },
+      );
+    }
+  
 
 
-
-export const getReadAllNotificationsMutationOptions = <TError = AxiosError<void>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof readAllNotifications>>, TError,void, TContext>, axios?: AxiosRequestConfig}
+export const getReadAllNotificationsMutationOptions = <TError = void,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof readAllNotifications>>, TError,void, TContext>, }
 ): UseMutationOptions<Awaited<ReturnType<typeof readAllNotifications>>, TError,void, TContext> => {
 
 const mutationKey = ['readAllNotifications'];
-const {mutation: mutationOptions, axios: axiosOptions} = options ?
+const {mutation: mutationOptions} = options ?
       options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
       options
       : {...options, mutation: {...options.mutation, mutationKey}}
-      : {mutation: { mutationKey, }, axios: undefined};
+      : {mutation: { mutationKey, }};
 
       
 
@@ -1484,7 +1519,7 @@ const {mutation: mutationOptions, axios: axiosOptions} = options ?
       const mutationFn: MutationFunction<Awaited<ReturnType<typeof readAllNotifications>>, void> = () => {
           
 
-          return  readAllNotifications(axiosOptions)
+          return  readAllNotifications()
         }
 
         
@@ -1494,13 +1529,13 @@ const {mutation: mutationOptions, axios: axiosOptions} = options ?
 
     export type ReadAllNotificationsMutationResult = NonNullable<Awaited<ReturnType<typeof readAllNotifications>>>
     
-    export type ReadAllNotificationsMutationError = AxiosError<void>
+    export type ReadAllNotificationsMutationError = void
 
     /**
  * @summary 알림 모두 읽음 처리
  */
-export const useReadAllNotifications = <TError = AxiosError<void>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof readAllNotifications>>, TError,void, TContext>, axios?: AxiosRequestConfig}
+export const useReadAllNotifications = <TError = void,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof readAllNotifications>>, TError,void, TContext>, }
  , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof readAllNotifications>>,
         TError,
@@ -1519,28 +1554,30 @@ export const useReadAllNotifications = <TError = AxiosError<void>,
  */
 export const updateRentalStatus = (
     rentalHistoryId: number,
-    rentalStatusUpdateRequest: RentalStatusUpdateRequest, options?: AxiosRequestConfig
- ): Promise<AxiosResponse<void>> => {
-    
-    
-    return axios.patch(
-      `/admin/rentals/${rentalHistoryId}`,
-      rentalStatusUpdateRequest,options
-    );
-  }
+    rentalStatusUpdateRequest: RentalStatusUpdateRequest,
+ ) => {
+      
+      
+      return customMutator<void>(
+      {url: `/admin/rentals/${rentalHistoryId}`, method: 'PATCH',
+      headers: {'Content-Type': 'application/json', },
+      data: rentalStatusUpdateRequest
+    },
+      );
+    }
+  
 
 
-
-export const getUpdateRentalStatusMutationOptions = <TError = AxiosError<unknown>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateRentalStatus>>, TError,{rentalHistoryId: number;data: RentalStatusUpdateRequest}, TContext>, axios?: AxiosRequestConfig}
+export const getUpdateRentalStatusMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateRentalStatus>>, TError,{rentalHistoryId: number;data: RentalStatusUpdateRequest}, TContext>, }
 ): UseMutationOptions<Awaited<ReturnType<typeof updateRentalStatus>>, TError,{rentalHistoryId: number;data: RentalStatusUpdateRequest}, TContext> => {
 
 const mutationKey = ['updateRentalStatus'];
-const {mutation: mutationOptions, axios: axiosOptions} = options ?
+const {mutation: mutationOptions} = options ?
       options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
       options
       : {...options, mutation: {...options.mutation, mutationKey}}
-      : {mutation: { mutationKey, }, axios: undefined};
+      : {mutation: { mutationKey, }};
 
       
 
@@ -1548,7 +1585,7 @@ const {mutation: mutationOptions, axios: axiosOptions} = options ?
       const mutationFn: MutationFunction<Awaited<ReturnType<typeof updateRentalStatus>>, {rentalHistoryId: number;data: RentalStatusUpdateRequest}> = (props) => {
           const {rentalHistoryId,data} = props ?? {};
 
-          return  updateRentalStatus(rentalHistoryId,data,axiosOptions)
+          return  updateRentalStatus(rentalHistoryId,data,)
         }
 
         
@@ -1558,13 +1595,13 @@ const {mutation: mutationOptions, axios: axiosOptions} = options ?
 
     export type UpdateRentalStatusMutationResult = NonNullable<Awaited<ReturnType<typeof updateRentalStatus>>>
     export type UpdateRentalStatusMutationBody = RentalStatusUpdateRequest
-    export type UpdateRentalStatusMutationError = AxiosError<unknown>
+    export type UpdateRentalStatusMutationError = unknown
 
     /**
  * @summary 대여 상태 변경
  */
-export const useUpdateRentalStatus = <TError = AxiosError<unknown>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateRentalStatus>>, TError,{rentalHistoryId: number;data: RentalStatusUpdateRequest}, TContext>, axios?: AxiosRequestConfig}
+export const useUpdateRentalStatus = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateRentalStatus>>, TError,{rentalHistoryId: number;data: RentalStatusUpdateRequest}, TContext>, }
  , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof updateRentalStatus>>,
         TError,
@@ -1582,31 +1619,33 @@ export const useUpdateRentalStatus = <TError = AxiosError<unknown>,
  * @summary 본인의 반납 필요 대여 기록 조회
  */
 export const getReturnRequiredHistory = (
-     options?: AxiosRequestConfig
- ): Promise<AxiosResponse<ReturnRequiredItemFindAllResponse>> => {
     
-    
-    return axios.get(
-      `/rentals/return-required`,options
-    );
-  }
-
+ signal?: AbortSignal
+) => {
+      
+      
+      return customMutator<ReturnRequiredItemFindAllResponse>(
+      {url: `/rentals/return-required`, method: 'GET', signal
+    },
+      );
+    }
+  
 
 export const getGetReturnRequiredHistoryQueryKey = () => {
     return [`/rentals/return-required`] as const;
     }
 
     
-export const getGetReturnRequiredHistoryQueryOptions = <TData = Awaited<ReturnType<typeof getReturnRequiredHistory>>, TError = AxiosError<unknown>>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getReturnRequiredHistory>>, TError, TData>>, axios?: AxiosRequestConfig}
+export const getGetReturnRequiredHistoryQueryOptions = <TData = Awaited<ReturnType<typeof getReturnRequiredHistory>>, TError = unknown>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getReturnRequiredHistory>>, TError, TData>>, }
 ) => {
 
-const {query: queryOptions, axios: axiosOptions} = options ?? {};
+const {query: queryOptions} = options ?? {};
 
   const queryKey =  queryOptions?.queryKey ?? getGetReturnRequiredHistoryQueryKey();
 
   
 
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof getReturnRequiredHistory>>> = ({ signal }) => getReturnRequiredHistory({ signal, ...axiosOptions });
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getReturnRequiredHistory>>> = ({ signal }) => getReturnRequiredHistory(signal);
 
       
 
@@ -1616,39 +1655,39 @@ const {query: queryOptions, axios: axiosOptions} = options ?? {};
 }
 
 export type GetReturnRequiredHistoryQueryResult = NonNullable<Awaited<ReturnType<typeof getReturnRequiredHistory>>>
-export type GetReturnRequiredHistoryQueryError = AxiosError<unknown>
+export type GetReturnRequiredHistoryQueryError = unknown
 
 
-export function useGetReturnRequiredHistory<TData = Awaited<ReturnType<typeof getReturnRequiredHistory>>, TError = AxiosError<unknown>>(
+export function useGetReturnRequiredHistory<TData = Awaited<ReturnType<typeof getReturnRequiredHistory>>, TError = unknown>(
   options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getReturnRequiredHistory>>, TError, TData>> & Pick<
         DefinedInitialDataOptions<
           Awaited<ReturnType<typeof getReturnRequiredHistory>>,
           TError,
           Awaited<ReturnType<typeof getReturnRequiredHistory>>
         > , 'initialData'
-      >, axios?: AxiosRequestConfig}
+      >, }
  , queryClient?: QueryClient
   ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetReturnRequiredHistory<TData = Awaited<ReturnType<typeof getReturnRequiredHistory>>, TError = AxiosError<unknown>>(
+export function useGetReturnRequiredHistory<TData = Awaited<ReturnType<typeof getReturnRequiredHistory>>, TError = unknown>(
   options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getReturnRequiredHistory>>, TError, TData>> & Pick<
         UndefinedInitialDataOptions<
           Awaited<ReturnType<typeof getReturnRequiredHistory>>,
           TError,
           Awaited<ReturnType<typeof getReturnRequiredHistory>>
         > , 'initialData'
-      >, axios?: AxiosRequestConfig}
+      >, }
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetReturnRequiredHistory<TData = Awaited<ReturnType<typeof getReturnRequiredHistory>>, TError = AxiosError<unknown>>(
-  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getReturnRequiredHistory>>, TError, TData>>, axios?: AxiosRequestConfig}
+export function useGetReturnRequiredHistory<TData = Awaited<ReturnType<typeof getReturnRequiredHistory>>, TError = unknown>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getReturnRequiredHistory>>, TError, TData>>, }
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 /**
  * @summary 본인의 반납 필요 대여 기록 조회
  */
 
-export function useGetReturnRequiredHistory<TData = Awaited<ReturnType<typeof getReturnRequiredHistory>>, TError = AxiosError<unknown>>(
-  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getReturnRequiredHistory>>, TError, TData>>, axios?: AxiosRequestConfig}
+export function useGetReturnRequiredHistory<TData = Awaited<ReturnType<typeof getReturnRequiredHistory>>, TError = unknown>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getReturnRequiredHistory>>, TError, TData>>, }
  , queryClient?: QueryClient 
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
 
@@ -1669,31 +1708,33 @@ export function useGetReturnRequiredHistory<TData = Awaited<ReturnType<typeof ge
  * @summary 사용자의 알림 목록 조회
  */
 export const getNotifications = (
-     options?: AxiosRequestConfig
- ): Promise<AxiosResponse<NotificationFindAllResponse>> => {
     
-    
-    return axios.get(
-      `/notifications`,options
-    );
-  }
-
+ signal?: AbortSignal
+) => {
+      
+      
+      return customMutator<NotificationFindAllResponse>(
+      {url: `/notifications`, method: 'GET', signal
+    },
+      );
+    }
+  
 
 export const getGetNotificationsQueryKey = () => {
     return [`/notifications`] as const;
     }
 
     
-export const getGetNotificationsQueryOptions = <TData = Awaited<ReturnType<typeof getNotifications>>, TError = AxiosError<unknown>>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getNotifications>>, TError, TData>>, axios?: AxiosRequestConfig}
+export const getGetNotificationsQueryOptions = <TData = Awaited<ReturnType<typeof getNotifications>>, TError = unknown>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getNotifications>>, TError, TData>>, }
 ) => {
 
-const {query: queryOptions, axios: axiosOptions} = options ?? {};
+const {query: queryOptions} = options ?? {};
 
   const queryKey =  queryOptions?.queryKey ?? getGetNotificationsQueryKey();
 
   
 
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof getNotifications>>> = ({ signal }) => getNotifications({ signal, ...axiosOptions });
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getNotifications>>> = ({ signal }) => getNotifications(signal);
 
       
 
@@ -1703,39 +1744,39 @@ const {query: queryOptions, axios: axiosOptions} = options ?? {};
 }
 
 export type GetNotificationsQueryResult = NonNullable<Awaited<ReturnType<typeof getNotifications>>>
-export type GetNotificationsQueryError = AxiosError<unknown>
+export type GetNotificationsQueryError = unknown
 
 
-export function useGetNotifications<TData = Awaited<ReturnType<typeof getNotifications>>, TError = AxiosError<unknown>>(
+export function useGetNotifications<TData = Awaited<ReturnType<typeof getNotifications>>, TError = unknown>(
   options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getNotifications>>, TError, TData>> & Pick<
         DefinedInitialDataOptions<
           Awaited<ReturnType<typeof getNotifications>>,
           TError,
           Awaited<ReturnType<typeof getNotifications>>
         > , 'initialData'
-      >, axios?: AxiosRequestConfig}
+      >, }
  , queryClient?: QueryClient
   ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetNotifications<TData = Awaited<ReturnType<typeof getNotifications>>, TError = AxiosError<unknown>>(
+export function useGetNotifications<TData = Awaited<ReturnType<typeof getNotifications>>, TError = unknown>(
   options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getNotifications>>, TError, TData>> & Pick<
         UndefinedInitialDataOptions<
           Awaited<ReturnType<typeof getNotifications>>,
           TError,
           Awaited<ReturnType<typeof getNotifications>>
         > , 'initialData'
-      >, axios?: AxiosRequestConfig}
+      >, }
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetNotifications<TData = Awaited<ReturnType<typeof getNotifications>>, TError = AxiosError<unknown>>(
-  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getNotifications>>, TError, TData>>, axios?: AxiosRequestConfig}
+export function useGetNotifications<TData = Awaited<ReturnType<typeof getNotifications>>, TError = unknown>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getNotifications>>, TError, TData>>, }
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 /**
  * @summary 사용자의 알림 목록 조회
  */
 
-export function useGetNotifications<TData = Awaited<ReturnType<typeof getNotifications>>, TError = AxiosError<unknown>>(
-  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getNotifications>>, TError, TData>>, axios?: AxiosRequestConfig}
+export function useGetNotifications<TData = Awaited<ReturnType<typeof getNotifications>>, TError = unknown>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getNotifications>>, TError, TData>>, }
  , queryClient?: QueryClient 
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
 
@@ -1756,31 +1797,33 @@ export function useGetNotifications<TData = Awaited<ReturnType<typeof getNotific
  * @summary 알림 개수 조회
  */
 export const getNotificationCount = (
-     options?: AxiosRequestConfig
- ): Promise<AxiosResponse<NotificationCountResponse>> => {
     
-    
-    return axios.get(
-      `/notifications/count`,options
-    );
-  }
-
+ signal?: AbortSignal
+) => {
+      
+      
+      return customMutator<NotificationCountResponse>(
+      {url: `/notifications/count`, method: 'GET', signal
+    },
+      );
+    }
+  
 
 export const getGetNotificationCountQueryKey = () => {
     return [`/notifications/count`] as const;
     }
 
     
-export const getGetNotificationCountQueryOptions = <TData = Awaited<ReturnType<typeof getNotificationCount>>, TError = AxiosError<unknown>>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getNotificationCount>>, TError, TData>>, axios?: AxiosRequestConfig}
+export const getGetNotificationCountQueryOptions = <TData = Awaited<ReturnType<typeof getNotificationCount>>, TError = unknown>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getNotificationCount>>, TError, TData>>, }
 ) => {
 
-const {query: queryOptions, axios: axiosOptions} = options ?? {};
+const {query: queryOptions} = options ?? {};
 
   const queryKey =  queryOptions?.queryKey ?? getGetNotificationCountQueryKey();
 
   
 
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof getNotificationCount>>> = ({ signal }) => getNotificationCount({ signal, ...axiosOptions });
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getNotificationCount>>> = ({ signal }) => getNotificationCount(signal);
 
       
 
@@ -1790,39 +1833,39 @@ const {query: queryOptions, axios: axiosOptions} = options ?? {};
 }
 
 export type GetNotificationCountQueryResult = NonNullable<Awaited<ReturnType<typeof getNotificationCount>>>
-export type GetNotificationCountQueryError = AxiosError<unknown>
+export type GetNotificationCountQueryError = unknown
 
 
-export function useGetNotificationCount<TData = Awaited<ReturnType<typeof getNotificationCount>>, TError = AxiosError<unknown>>(
+export function useGetNotificationCount<TData = Awaited<ReturnType<typeof getNotificationCount>>, TError = unknown>(
   options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getNotificationCount>>, TError, TData>> & Pick<
         DefinedInitialDataOptions<
           Awaited<ReturnType<typeof getNotificationCount>>,
           TError,
           Awaited<ReturnType<typeof getNotificationCount>>
         > , 'initialData'
-      >, axios?: AxiosRequestConfig}
+      >, }
  , queryClient?: QueryClient
   ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetNotificationCount<TData = Awaited<ReturnType<typeof getNotificationCount>>, TError = AxiosError<unknown>>(
+export function useGetNotificationCount<TData = Awaited<ReturnType<typeof getNotificationCount>>, TError = unknown>(
   options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getNotificationCount>>, TError, TData>> & Pick<
         UndefinedInitialDataOptions<
           Awaited<ReturnType<typeof getNotificationCount>>,
           TError,
           Awaited<ReturnType<typeof getNotificationCount>>
         > , 'initialData'
-      >, axios?: AxiosRequestConfig}
+      >, }
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetNotificationCount<TData = Awaited<ReturnType<typeof getNotificationCount>>, TError = AxiosError<unknown>>(
-  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getNotificationCount>>, TError, TData>>, axios?: AxiosRequestConfig}
+export function useGetNotificationCount<TData = Awaited<ReturnType<typeof getNotificationCount>>, TError = unknown>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getNotificationCount>>, TError, TData>>, }
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 /**
  * @summary 알림 개수 조회
  */
 
-export function useGetNotificationCount<TData = Awaited<ReturnType<typeof getNotificationCount>>, TError = AxiosError<unknown>>(
-  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getNotificationCount>>, TError, TData>>, axios?: AxiosRequestConfig}
+export function useGetNotificationCount<TData = Awaited<ReturnType<typeof getNotificationCount>>, TError = unknown>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getNotificationCount>>, TError, TData>>, }
  , queryClient?: QueryClient 
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
 
@@ -1843,33 +1886,34 @@ export function useGetNotificationCount<TData = Awaited<ReturnType<typeof getNot
  * @summary 대여 물품 목록 조회
  */
 export const getItems = (
-    params?: GetItemsParams, options?: AxiosRequestConfig
- ): Promise<AxiosResponse<ItemFindAllResponse>> => {
-    
-    
-    return axios.get(
-      `/items`,{
-    ...options,
-        params: {...params, ...options?.params},}
-    );
-  }
-
+    params?: GetItemsParams,
+ signal?: AbortSignal
+) => {
+      
+      
+      return customMutator<ItemFindAllResponse>(
+      {url: `/items`, method: 'GET',
+        params, signal
+    },
+      );
+    }
+  
 
 export const getGetItemsQueryKey = (params?: GetItemsParams,) => {
     return [`/items`, ...(params ? [params]: [])] as const;
     }
 
     
-export const getGetItemsQueryOptions = <TData = Awaited<ReturnType<typeof getItems>>, TError = AxiosError<unknown>>(params?: GetItemsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getItems>>, TError, TData>>, axios?: AxiosRequestConfig}
+export const getGetItemsQueryOptions = <TData = Awaited<ReturnType<typeof getItems>>, TError = unknown>(params?: GetItemsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getItems>>, TError, TData>>, }
 ) => {
 
-const {query: queryOptions, axios: axiosOptions} = options ?? {};
+const {query: queryOptions} = options ?? {};
 
   const queryKey =  queryOptions?.queryKey ?? getGetItemsQueryKey(params);
 
   
 
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof getItems>>> = ({ signal }) => getItems(params, { signal, ...axiosOptions });
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getItems>>> = ({ signal }) => getItems(params, signal);
 
       
 
@@ -1879,39 +1923,39 @@ const {query: queryOptions, axios: axiosOptions} = options ?? {};
 }
 
 export type GetItemsQueryResult = NonNullable<Awaited<ReturnType<typeof getItems>>>
-export type GetItemsQueryError = AxiosError<unknown>
+export type GetItemsQueryError = unknown
 
 
-export function useGetItems<TData = Awaited<ReturnType<typeof getItems>>, TError = AxiosError<unknown>>(
+export function useGetItems<TData = Awaited<ReturnType<typeof getItems>>, TError = unknown>(
  params: undefined |  GetItemsParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getItems>>, TError, TData>> & Pick<
         DefinedInitialDataOptions<
           Awaited<ReturnType<typeof getItems>>,
           TError,
           Awaited<ReturnType<typeof getItems>>
         > , 'initialData'
-      >, axios?: AxiosRequestConfig}
+      >, }
  , queryClient?: QueryClient
   ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetItems<TData = Awaited<ReturnType<typeof getItems>>, TError = AxiosError<unknown>>(
+export function useGetItems<TData = Awaited<ReturnType<typeof getItems>>, TError = unknown>(
  params?: GetItemsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getItems>>, TError, TData>> & Pick<
         UndefinedInitialDataOptions<
           Awaited<ReturnType<typeof getItems>>,
           TError,
           Awaited<ReturnType<typeof getItems>>
         > , 'initialData'
-      >, axios?: AxiosRequestConfig}
+      >, }
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetItems<TData = Awaited<ReturnType<typeof getItems>>, TError = AxiosError<unknown>>(
- params?: GetItemsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getItems>>, TError, TData>>, axios?: AxiosRequestConfig}
+export function useGetItems<TData = Awaited<ReturnType<typeof getItems>>, TError = unknown>(
+ params?: GetItemsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getItems>>, TError, TData>>, }
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 /**
  * @summary 대여 물품 목록 조회
  */
 
-export function useGetItems<TData = Awaited<ReturnType<typeof getItems>>, TError = AxiosError<unknown>>(
- params?: GetItemsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getItems>>, TError, TData>>, axios?: AxiosRequestConfig}
+export function useGetItems<TData = Awaited<ReturnType<typeof getItems>>, TError = unknown>(
+ params?: GetItemsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getItems>>, TError, TData>>, }
  , queryClient?: QueryClient 
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
 
@@ -1932,33 +1976,34 @@ export function useGetItems<TData = Awaited<ReturnType<typeof getItems>>, TError
  * @summary 모든 대여 기록 조회
  */
 export const getAllRentalHistories = (
-    params?: GetAllRentalHistoriesParams, options?: AxiosRequestConfig
- ): Promise<AxiosResponse<AdminRentalHistoryFindAllResponse>> => {
-    
-    
-    return axios.get(
-      `/admin/rentals`,{
-    ...options,
-        params: {...params, ...options?.params},}
-    );
-  }
-
+    params?: GetAllRentalHistoriesParams,
+ signal?: AbortSignal
+) => {
+      
+      
+      return customMutator<AdminRentalHistoryFindAllResponse>(
+      {url: `/admin/rentals`, method: 'GET',
+        params, signal
+    },
+      );
+    }
+  
 
 export const getGetAllRentalHistoriesQueryKey = (params?: GetAllRentalHistoriesParams,) => {
     return [`/admin/rentals`, ...(params ? [params]: [])] as const;
     }
 
     
-export const getGetAllRentalHistoriesQueryOptions = <TData = Awaited<ReturnType<typeof getAllRentalHistories>>, TError = AxiosError<unknown>>(params?: GetAllRentalHistoriesParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getAllRentalHistories>>, TError, TData>>, axios?: AxiosRequestConfig}
+export const getGetAllRentalHistoriesQueryOptions = <TData = Awaited<ReturnType<typeof getAllRentalHistories>>, TError = unknown>(params?: GetAllRentalHistoriesParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getAllRentalHistories>>, TError, TData>>, }
 ) => {
 
-const {query: queryOptions, axios: axiosOptions} = options ?? {};
+const {query: queryOptions} = options ?? {};
 
   const queryKey =  queryOptions?.queryKey ?? getGetAllRentalHistoriesQueryKey(params);
 
   
 
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof getAllRentalHistories>>> = ({ signal }) => getAllRentalHistories(params, { signal, ...axiosOptions });
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getAllRentalHistories>>> = ({ signal }) => getAllRentalHistories(params, signal);
 
       
 
@@ -1968,39 +2013,39 @@ const {query: queryOptions, axios: axiosOptions} = options ?? {};
 }
 
 export type GetAllRentalHistoriesQueryResult = NonNullable<Awaited<ReturnType<typeof getAllRentalHistories>>>
-export type GetAllRentalHistoriesQueryError = AxiosError<unknown>
+export type GetAllRentalHistoriesQueryError = unknown
 
 
-export function useGetAllRentalHistories<TData = Awaited<ReturnType<typeof getAllRentalHistories>>, TError = AxiosError<unknown>>(
+export function useGetAllRentalHistories<TData = Awaited<ReturnType<typeof getAllRentalHistories>>, TError = unknown>(
  params: undefined |  GetAllRentalHistoriesParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getAllRentalHistories>>, TError, TData>> & Pick<
         DefinedInitialDataOptions<
           Awaited<ReturnType<typeof getAllRentalHistories>>,
           TError,
           Awaited<ReturnType<typeof getAllRentalHistories>>
         > , 'initialData'
-      >, axios?: AxiosRequestConfig}
+      >, }
  , queryClient?: QueryClient
   ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetAllRentalHistories<TData = Awaited<ReturnType<typeof getAllRentalHistories>>, TError = AxiosError<unknown>>(
+export function useGetAllRentalHistories<TData = Awaited<ReturnType<typeof getAllRentalHistories>>, TError = unknown>(
  params?: GetAllRentalHistoriesParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getAllRentalHistories>>, TError, TData>> & Pick<
         UndefinedInitialDataOptions<
           Awaited<ReturnType<typeof getAllRentalHistories>>,
           TError,
           Awaited<ReturnType<typeof getAllRentalHistories>>
         > , 'initialData'
-      >, axios?: AxiosRequestConfig}
+      >, }
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetAllRentalHistories<TData = Awaited<ReturnType<typeof getAllRentalHistories>>, TError = AxiosError<unknown>>(
- params?: GetAllRentalHistoriesParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getAllRentalHistories>>, TError, TData>>, axios?: AxiosRequestConfig}
+export function useGetAllRentalHistories<TData = Awaited<ReturnType<typeof getAllRentalHistories>>, TError = unknown>(
+ params?: GetAllRentalHistoriesParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getAllRentalHistories>>, TError, TData>>, }
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 /**
  * @summary 모든 대여 기록 조회
  */
 
-export function useGetAllRentalHistories<TData = Awaited<ReturnType<typeof getAllRentalHistories>>, TError = AxiosError<unknown>>(
- params?: GetAllRentalHistoriesParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getAllRentalHistories>>, TError, TData>>, axios?: AxiosRequestConfig}
+export function useGetAllRentalHistories<TData = Awaited<ReturnType<typeof getAllRentalHistories>>, TError = unknown>(
+ params?: GetAllRentalHistoriesParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getAllRentalHistories>>, TError, TData>>, }
  , queryClient?: QueryClient 
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
 
@@ -2021,33 +2066,34 @@ export function useGetAllRentalHistories<TData = Awaited<ReturnType<typeof getAl
  * @summary 관리자 대시보드 목록 조회
  */
 export const getAllDashboardApplications = (
-    params?: GetAllDashboardApplicationsParams, options?: AxiosRequestConfig
- ): Promise<AxiosResponse<DashboardResponse>> => {
-    
-    
-    return axios.get(
-      `/admin/rentals/dashboard`,{
-    ...options,
-        params: {...params, ...options?.params},}
-    );
-  }
-
+    params?: GetAllDashboardApplicationsParams,
+ signal?: AbortSignal
+) => {
+      
+      
+      return customMutator<DashboardResponse>(
+      {url: `/admin/rentals/dashboard`, method: 'GET',
+        params, signal
+    },
+      );
+    }
+  
 
 export const getGetAllDashboardApplicationsQueryKey = (params?: GetAllDashboardApplicationsParams,) => {
     return [`/admin/rentals/dashboard`, ...(params ? [params]: [])] as const;
     }
 
     
-export const getGetAllDashboardApplicationsQueryOptions = <TData = Awaited<ReturnType<typeof getAllDashboardApplications>>, TError = AxiosError<unknown>>(params?: GetAllDashboardApplicationsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getAllDashboardApplications>>, TError, TData>>, axios?: AxiosRequestConfig}
+export const getGetAllDashboardApplicationsQueryOptions = <TData = Awaited<ReturnType<typeof getAllDashboardApplications>>, TError = unknown>(params?: GetAllDashboardApplicationsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getAllDashboardApplications>>, TError, TData>>, }
 ) => {
 
-const {query: queryOptions, axios: axiosOptions} = options ?? {};
+const {query: queryOptions} = options ?? {};
 
   const queryKey =  queryOptions?.queryKey ?? getGetAllDashboardApplicationsQueryKey(params);
 
   
 
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof getAllDashboardApplications>>> = ({ signal }) => getAllDashboardApplications(params, { signal, ...axiosOptions });
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getAllDashboardApplications>>> = ({ signal }) => getAllDashboardApplications(params, signal);
 
       
 
@@ -2057,39 +2103,39 @@ const {query: queryOptions, axios: axiosOptions} = options ?? {};
 }
 
 export type GetAllDashboardApplicationsQueryResult = NonNullable<Awaited<ReturnType<typeof getAllDashboardApplications>>>
-export type GetAllDashboardApplicationsQueryError = AxiosError<unknown>
+export type GetAllDashboardApplicationsQueryError = unknown
 
 
-export function useGetAllDashboardApplications<TData = Awaited<ReturnType<typeof getAllDashboardApplications>>, TError = AxiosError<unknown>>(
+export function useGetAllDashboardApplications<TData = Awaited<ReturnType<typeof getAllDashboardApplications>>, TError = unknown>(
  params: undefined |  GetAllDashboardApplicationsParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getAllDashboardApplications>>, TError, TData>> & Pick<
         DefinedInitialDataOptions<
           Awaited<ReturnType<typeof getAllDashboardApplications>>,
           TError,
           Awaited<ReturnType<typeof getAllDashboardApplications>>
         > , 'initialData'
-      >, axios?: AxiosRequestConfig}
+      >, }
  , queryClient?: QueryClient
   ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetAllDashboardApplications<TData = Awaited<ReturnType<typeof getAllDashboardApplications>>, TError = AxiosError<unknown>>(
+export function useGetAllDashboardApplications<TData = Awaited<ReturnType<typeof getAllDashboardApplications>>, TError = unknown>(
  params?: GetAllDashboardApplicationsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getAllDashboardApplications>>, TError, TData>> & Pick<
         UndefinedInitialDataOptions<
           Awaited<ReturnType<typeof getAllDashboardApplications>>,
           TError,
           Awaited<ReturnType<typeof getAllDashboardApplications>>
         > , 'initialData'
-      >, axios?: AxiosRequestConfig}
+      >, }
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetAllDashboardApplications<TData = Awaited<ReturnType<typeof getAllDashboardApplications>>, TError = AxiosError<unknown>>(
- params?: GetAllDashboardApplicationsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getAllDashboardApplications>>, TError, TData>>, axios?: AxiosRequestConfig}
+export function useGetAllDashboardApplications<TData = Awaited<ReturnType<typeof getAllDashboardApplications>>, TError = unknown>(
+ params?: GetAllDashboardApplicationsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getAllDashboardApplications>>, TError, TData>>, }
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 /**
  * @summary 관리자 대시보드 목록 조회
  */
 
-export function useGetAllDashboardApplications<TData = Awaited<ReturnType<typeof getAllDashboardApplications>>, TError = AxiosError<unknown>>(
- params?: GetAllDashboardApplicationsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getAllDashboardApplications>>, TError, TData>>, axios?: AxiosRequestConfig}
+export function useGetAllDashboardApplications<TData = Awaited<ReturnType<typeof getAllDashboardApplications>>, TError = unknown>(
+ params?: GetAllDashboardApplicationsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getAllDashboardApplications>>, TError, TData>>, }
  , queryClient?: QueryClient 
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
 
@@ -2110,31 +2156,33 @@ export function useGetAllDashboardApplications<TData = Awaited<ReturnType<typeof
  * @summary 관리자 알림 목록 조회
  */
 export const getAdminNotifications = (
-     options?: AxiosRequestConfig
- ): Promise<AxiosResponse<NotificationFindAllResponse>> => {
     
-    
-    return axios.get(
-      `/admin/notifications`,options
-    );
-  }
-
+ signal?: AbortSignal
+) => {
+      
+      
+      return customMutator<NotificationFindAllResponse>(
+      {url: `/admin/notifications`, method: 'GET', signal
+    },
+      );
+    }
+  
 
 export const getGetAdminNotificationsQueryKey = () => {
     return [`/admin/notifications`] as const;
     }
 
     
-export const getGetAdminNotificationsQueryOptions = <TData = Awaited<ReturnType<typeof getAdminNotifications>>, TError = AxiosError<unknown>>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getAdminNotifications>>, TError, TData>>, axios?: AxiosRequestConfig}
+export const getGetAdminNotificationsQueryOptions = <TData = Awaited<ReturnType<typeof getAdminNotifications>>, TError = unknown>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getAdminNotifications>>, TError, TData>>, }
 ) => {
 
-const {query: queryOptions, axios: axiosOptions} = options ?? {};
+const {query: queryOptions} = options ?? {};
 
   const queryKey =  queryOptions?.queryKey ?? getGetAdminNotificationsQueryKey();
 
   
 
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof getAdminNotifications>>> = ({ signal }) => getAdminNotifications({ signal, ...axiosOptions });
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getAdminNotifications>>> = ({ signal }) => getAdminNotifications(signal);
 
       
 
@@ -2144,39 +2192,39 @@ const {query: queryOptions, axios: axiosOptions} = options ?? {};
 }
 
 export type GetAdminNotificationsQueryResult = NonNullable<Awaited<ReturnType<typeof getAdminNotifications>>>
-export type GetAdminNotificationsQueryError = AxiosError<unknown>
+export type GetAdminNotificationsQueryError = unknown
 
 
-export function useGetAdminNotifications<TData = Awaited<ReturnType<typeof getAdminNotifications>>, TError = AxiosError<unknown>>(
+export function useGetAdminNotifications<TData = Awaited<ReturnType<typeof getAdminNotifications>>, TError = unknown>(
   options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getAdminNotifications>>, TError, TData>> & Pick<
         DefinedInitialDataOptions<
           Awaited<ReturnType<typeof getAdminNotifications>>,
           TError,
           Awaited<ReturnType<typeof getAdminNotifications>>
         > , 'initialData'
-      >, axios?: AxiosRequestConfig}
+      >, }
  , queryClient?: QueryClient
   ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetAdminNotifications<TData = Awaited<ReturnType<typeof getAdminNotifications>>, TError = AxiosError<unknown>>(
+export function useGetAdminNotifications<TData = Awaited<ReturnType<typeof getAdminNotifications>>, TError = unknown>(
   options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getAdminNotifications>>, TError, TData>> & Pick<
         UndefinedInitialDataOptions<
           Awaited<ReturnType<typeof getAdminNotifications>>,
           TError,
           Awaited<ReturnType<typeof getAdminNotifications>>
         > , 'initialData'
-      >, axios?: AxiosRequestConfig}
+      >, }
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetAdminNotifications<TData = Awaited<ReturnType<typeof getAdminNotifications>>, TError = AxiosError<unknown>>(
-  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getAdminNotifications>>, TError, TData>>, axios?: AxiosRequestConfig}
+export function useGetAdminNotifications<TData = Awaited<ReturnType<typeof getAdminNotifications>>, TError = unknown>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getAdminNotifications>>, TError, TData>>, }
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 /**
  * @summary 관리자 알림 목록 조회
  */
 
-export function useGetAdminNotifications<TData = Awaited<ReturnType<typeof getAdminNotifications>>, TError = AxiosError<unknown>>(
-  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getAdminNotifications>>, TError, TData>>, axios?: AxiosRequestConfig}
+export function useGetAdminNotifications<TData = Awaited<ReturnType<typeof getAdminNotifications>>, TError = unknown>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getAdminNotifications>>, TError, TData>>, }
  , queryClient?: QueryClient 
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
 
@@ -2197,33 +2245,34 @@ export function useGetAdminNotifications<TData = Awaited<ReturnType<typeof getAd
  * @summary 회원 목록 조회
  */
 export const getAllMembers = (
-    params?: GetAllMembersParams, options?: AxiosRequestConfig
- ): Promise<AxiosResponse<MemberFindAllResponse>> => {
-    
-    
-    return axios.get(
-      `/admin/members`,{
-    ...options,
-        params: {...params, ...options?.params},}
-    );
-  }
-
+    params?: GetAllMembersParams,
+ signal?: AbortSignal
+) => {
+      
+      
+      return customMutator<MemberFindAllResponse>(
+      {url: `/admin/members`, method: 'GET',
+        params, signal
+    },
+      );
+    }
+  
 
 export const getGetAllMembersQueryKey = (params?: GetAllMembersParams,) => {
     return [`/admin/members`, ...(params ? [params]: [])] as const;
     }
 
     
-export const getGetAllMembersQueryOptions = <TData = Awaited<ReturnType<typeof getAllMembers>>, TError = AxiosError<unknown>>(params?: GetAllMembersParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getAllMembers>>, TError, TData>>, axios?: AxiosRequestConfig}
+export const getGetAllMembersQueryOptions = <TData = Awaited<ReturnType<typeof getAllMembers>>, TError = unknown>(params?: GetAllMembersParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getAllMembers>>, TError, TData>>, }
 ) => {
 
-const {query: queryOptions, axios: axiosOptions} = options ?? {};
+const {query: queryOptions} = options ?? {};
 
   const queryKey =  queryOptions?.queryKey ?? getGetAllMembersQueryKey(params);
 
   
 
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof getAllMembers>>> = ({ signal }) => getAllMembers(params, { signal, ...axiosOptions });
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getAllMembers>>> = ({ signal }) => getAllMembers(params, signal);
 
       
 
@@ -2233,39 +2282,39 @@ const {query: queryOptions, axios: axiosOptions} = options ?? {};
 }
 
 export type GetAllMembersQueryResult = NonNullable<Awaited<ReturnType<typeof getAllMembers>>>
-export type GetAllMembersQueryError = AxiosError<unknown>
+export type GetAllMembersQueryError = unknown
 
 
-export function useGetAllMembers<TData = Awaited<ReturnType<typeof getAllMembers>>, TError = AxiosError<unknown>>(
+export function useGetAllMembers<TData = Awaited<ReturnType<typeof getAllMembers>>, TError = unknown>(
  params: undefined |  GetAllMembersParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getAllMembers>>, TError, TData>> & Pick<
         DefinedInitialDataOptions<
           Awaited<ReturnType<typeof getAllMembers>>,
           TError,
           Awaited<ReturnType<typeof getAllMembers>>
         > , 'initialData'
-      >, axios?: AxiosRequestConfig}
+      >, }
  , queryClient?: QueryClient
   ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetAllMembers<TData = Awaited<ReturnType<typeof getAllMembers>>, TError = AxiosError<unknown>>(
+export function useGetAllMembers<TData = Awaited<ReturnType<typeof getAllMembers>>, TError = unknown>(
  params?: GetAllMembersParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getAllMembers>>, TError, TData>> & Pick<
         UndefinedInitialDataOptions<
           Awaited<ReturnType<typeof getAllMembers>>,
           TError,
           Awaited<ReturnType<typeof getAllMembers>>
         > , 'initialData'
-      >, axios?: AxiosRequestConfig}
+      >, }
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetAllMembers<TData = Awaited<ReturnType<typeof getAllMembers>>, TError = AxiosError<unknown>>(
- params?: GetAllMembersParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getAllMembers>>, TError, TData>>, axios?: AxiosRequestConfig}
+export function useGetAllMembers<TData = Awaited<ReturnType<typeof getAllMembers>>, TError = unknown>(
+ params?: GetAllMembersParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getAllMembers>>, TError, TData>>, }
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 /**
  * @summary 회원 목록 조회
  */
 
-export function useGetAllMembers<TData = Awaited<ReturnType<typeof getAllMembers>>, TError = AxiosError<unknown>>(
- params?: GetAllMembersParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getAllMembers>>, TError, TData>>, axios?: AxiosRequestConfig}
+export function useGetAllMembers<TData = Awaited<ReturnType<typeof getAllMembers>>, TError = unknown>(
+ params?: GetAllMembersParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getAllMembers>>, TError, TData>>, }
  , queryClient?: QueryClient 
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
 
@@ -2286,31 +2335,33 @@ export function useGetAllMembers<TData = Awaited<ReturnType<typeof getAllMembers
  * @summary 학생회비 납부자 Excel 파일 다운로드
  */
 export const createPayerExcel = (
-     options?: AxiosRequestConfig
- ): Promise<AxiosResponse<unknown>> => {
     
-    
-    return axios.get(
-      `/admin/members/payers/excel`,options
-    );
-  }
-
+ signal?: AbortSignal
+) => {
+      
+      
+      return customMutator<unknown>(
+      {url: `/admin/members/payers/excel`, method: 'GET', signal
+    },
+      );
+    }
+  
 
 export const getCreatePayerExcelQueryKey = () => {
     return [`/admin/members/payers/excel`] as const;
     }
 
     
-export const getCreatePayerExcelQueryOptions = <TData = Awaited<ReturnType<typeof createPayerExcel>>, TError = AxiosError<unknown>>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof createPayerExcel>>, TError, TData>>, axios?: AxiosRequestConfig}
+export const getCreatePayerExcelQueryOptions = <TData = Awaited<ReturnType<typeof createPayerExcel>>, TError = unknown>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof createPayerExcel>>, TError, TData>>, }
 ) => {
 
-const {query: queryOptions, axios: axiosOptions} = options ?? {};
+const {query: queryOptions} = options ?? {};
 
   const queryKey =  queryOptions?.queryKey ?? getCreatePayerExcelQueryKey();
 
   
 
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof createPayerExcel>>> = ({ signal }) => createPayerExcel({ signal, ...axiosOptions });
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof createPayerExcel>>> = ({ signal }) => createPayerExcel(signal);
 
       
 
@@ -2320,39 +2371,39 @@ const {query: queryOptions, axios: axiosOptions} = options ?? {};
 }
 
 export type CreatePayerExcelQueryResult = NonNullable<Awaited<ReturnType<typeof createPayerExcel>>>
-export type CreatePayerExcelQueryError = AxiosError<unknown>
+export type CreatePayerExcelQueryError = unknown
 
 
-export function useCreatePayerExcel<TData = Awaited<ReturnType<typeof createPayerExcel>>, TError = AxiosError<unknown>>(
+export function useCreatePayerExcel<TData = Awaited<ReturnType<typeof createPayerExcel>>, TError = unknown>(
   options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof createPayerExcel>>, TError, TData>> & Pick<
         DefinedInitialDataOptions<
           Awaited<ReturnType<typeof createPayerExcel>>,
           TError,
           Awaited<ReturnType<typeof createPayerExcel>>
         > , 'initialData'
-      >, axios?: AxiosRequestConfig}
+      >, }
  , queryClient?: QueryClient
   ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useCreatePayerExcel<TData = Awaited<ReturnType<typeof createPayerExcel>>, TError = AxiosError<unknown>>(
+export function useCreatePayerExcel<TData = Awaited<ReturnType<typeof createPayerExcel>>, TError = unknown>(
   options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof createPayerExcel>>, TError, TData>> & Pick<
         UndefinedInitialDataOptions<
           Awaited<ReturnType<typeof createPayerExcel>>,
           TError,
           Awaited<ReturnType<typeof createPayerExcel>>
         > , 'initialData'
-      >, axios?: AxiosRequestConfig}
+      >, }
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useCreatePayerExcel<TData = Awaited<ReturnType<typeof createPayerExcel>>, TError = AxiosError<unknown>>(
-  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof createPayerExcel>>, TError, TData>>, axios?: AxiosRequestConfig}
+export function useCreatePayerExcel<TData = Awaited<ReturnType<typeof createPayerExcel>>, TError = unknown>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof createPayerExcel>>, TError, TData>>, }
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 /**
  * @summary 학생회비 납부자 Excel 파일 다운로드
  */
 
-export function useCreatePayerExcel<TData = Awaited<ReturnType<typeof createPayerExcel>>, TError = AxiosError<unknown>>(
-  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof createPayerExcel>>, TError, TData>>, axios?: AxiosRequestConfig}
+export function useCreatePayerExcel<TData = Awaited<ReturnType<typeof createPayerExcel>>, TError = unknown>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof createPayerExcel>>, TError, TData>>, }
  , queryClient?: QueryClient 
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
 
