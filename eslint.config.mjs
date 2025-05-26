@@ -13,7 +13,7 @@ export default [
     },
     ...tseslint.config({
         files: ['**/*.ts', '**/*.tsx'],
-        project: true, // tsconfig.json 기반 타입 검사
+        // project: true, // tsconfig.json 기반 타입 검사
     }),
     {
         files: ['**/*.ts', '**/*.tsx', '**/*.js', '**/*.jsx'], // 이 규칙은 모든 JS/TS 파일에 적용
