@@ -6,7 +6,7 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint",
+    "lint": "eslint . --ext .ts,.tsx,.js,.jsx",
     "generate:types": "openapi-typescript https://dev-api.billilge.site/api-docs -o src/types/api.d.ts"
   },
   "dependencies": {
@@ -14,7 +14,8 @@
     "axios": "^1.9.0",
     "next": "15.3.2",
     "react": "^19.0.0",
-    "react-dom": "^19.0.0"
+    "react-dom": "^19.0.0",
+    "typescript-eslint": "^8.32.1"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3",
