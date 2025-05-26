@@ -1,24 +1,35 @@
+import type { AxiosRequestConfig, Method } from 'axios';
 import { apiClient } from '@/lib/axios';
 
-type MutatorParams = {
-  url: string
-  method: string
-  body?: any
-  options?: any
-}
+type CustomMutatorParams = {
+  url: string;
+  method: Method;
+  params?: AxiosRequestConfig['params'];
+  data?: AxiosRequestConfig['data'];
+  headers?: AxiosRequestConfig['headers'];
+  signal?: AbortSignal;
+};
 
-export const customMutator = async ({ url, method, body, options }: MutatorParams) => {
+export const customMutator = async <T>({
+  url,
+  method,
+  params,
+  data,
+  headers,
+  signal,
+}: CustomMutatorParams): Promise<T> => {
   try {
-    const res = await apiClient.request({
+    const response = await apiClient.request<T>({
       url,
       method,
-      data: body,
-      ...options,
-    })
-    return res.data
-  } catch (e) {
-    // 공통 에러 로깅, 메시지 처리 가능
-    console.error('API 에러 발생', e)
-    throw e
+      params,
+      data,
+      headers,
+      signal,
+    });
+    return response.data;
+  } catch (error) {
+    console.error('API 에러 발생', error);
+    throw error;
   }
-}
+};
