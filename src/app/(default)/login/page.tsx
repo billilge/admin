@@ -43,21 +43,29 @@ export default function Login() {
     if (!validateLoginForm(studentId, password)) return;
 
     await toast.promise(
-      loginMutation
-        .mutateAsync({
-          data: { studentId, password },
+      fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/auth/admin-login`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        // credentials: 'include', // 쿠키 필요 시
+        body: JSON.stringify({ studentId, password }),
+      })
+        .then(async (res) => {
+          if (!res.ok) {
+            const error = await res.json();
+            throw new Error(error.message || '로그인 실패');
+          }
+          return res.json();
         })
-        .then((res) => {
-          // 로그인 성공 시 토큰 저장 (인터셉터에서 처리 가능하도록 최소한으로 유지)
-          localStorage.setItem('token', res.accessToken);
+        .then((data) => {
+          localStorage.setItem('token', data.accessToken);
           router.push('/main');
         }),
       {
         loading: '로그인 중...',
         success: '로그인에 성공했습니다!',
-        error: (err: any) => {
-          return err?.response?.data?.message || '관리자 로그인 중 오류가 발생했습니다!';
-        },
+        error: (err: any) => err.message || '관리자 로그인 중 오류가 발생했습니다!',
       },
     );
   };
