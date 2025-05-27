@@ -1,8 +1,12 @@
 'use client';
 
+import { useQueryClient } from '@tanstack/react-query';
 import { Search, Plus, ChevronLeft, ChevronRight } from 'lucide-react';
 import { useState } from 'react';
-import { useGetAdminList } from '@/api-client'; // 실제 경로 맞게 조정
+import toast from 'react-hot-toast';
+import { getGetAdminListQueryKey, useGetAdminList } from '@/api-client';
+import { useAddAdmins } from '@/api-client';
+import { AdminRequest } from '@/api-client/model';
 import AddAdminModal from '@/components/modal/AddAdminModal';
 
 interface Student {
@@ -16,6 +20,21 @@ export default function AdminPage() {
   const [currentPage, setCurrentPage] = useState(1);
   const totalPages = 2;
   const [isModalOpen, setIsModalOpen] = useState(false);
+
+  const queryClient = useQueryClient();
+
+  // const addAdminsMutation = useAddAdmins();
+  const addAdminsMutation = useAddAdmins({
+    mutation: {
+      onSuccess: () => {
+        toast.success('관리자가 성공적으로 추가되었습니다.');
+        queryClient.invalidateQueries({ queryKey: getGetAdminListQueryKey() });
+      },
+      onError: () => {
+        toast.error('관리자 추가에 실패했습니다.');
+      },
+    },
+  });
 
   const {
     data: adminListData,
@@ -35,11 +54,12 @@ export default function AdminPage() {
   );
 
   const handleAddAdmins = (selectedStudents: Student[]) => {
-    const newAdmins = selectedStudents.map((student) => ({
-      name: student.name,
-      studentId: student.studentId,
-    }));
+    console.log('추가 호출됨');
+    const requestData: AdminRequest = {
+      memberIds: selectedStudents.map((s) => s.id),
+    };
 
+    addAdminsMutation.mutate({ data: requestData });
     setIsModalOpen(false);
   };
 
