@@ -1,3 +1,5 @@
+'use client';
+
 import type { AxiosRequestConfig, Method } from 'axios';
 import { apiClient } from '@/lib/axios';
 
