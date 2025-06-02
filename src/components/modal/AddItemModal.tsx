@@ -2,8 +2,11 @@
 
 import { X, Folder } from 'lucide-react';
 import type React from 'react';
-
 import { useState, useEffect } from 'react';
+import toast from 'react-hot-toast';
+import { useAddItem } from '@/api-client';
+import { updateItem } from '@/api-client'; // 추가
+import { ItemRequest, ItemRequestType } from '@/api-client/model';
 
 interface ItemData {
   id?: number;
@@ -17,7 +20,7 @@ interface ItemData {
 interface AddItemModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onApply: (item: ItemData) => void;
+  onApply: () => void; // 성공 시 외부에 알림용 콜백
   editItem?: {
     id: number;
     name: string;
@@ -41,6 +44,20 @@ export default function AddItemModal({
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [imageFileName, setImageFileName] = useState('');
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+
+  const { mutate } = useAddItem({
+    mutation: {
+      onSuccess: () => {
+        toast.success('물품이 성공적으로 등록되었습니다.');
+        resetForm();
+        onApply();
+        onClose();
+      },
+      onError: () => {
+        toast.error('물품 등록 중 오류가 발생했습니다.');
+      },
+    },
+  });
 
   useEffect(() => {
     if (isEditMode && editItem) {
@@ -76,8 +93,6 @@ export default function AddItemModal({
     if (files && files.length > 0) {
       setImageFile(files[0]);
       setImageFileName(files[0].name);
-
-      // Create preview URL
       if (previewUrl && !editItem?.imageUrl) {
         URL.revokeObjectURL(previewUrl);
       }
@@ -87,7 +102,6 @@ export default function AddItemModal({
 
   useEffect(() => {
     return () => {
-      // Only revoke URLs that we created (not the ones from editItem)
       if (previewUrl && imageFile) {
         URL.revokeObjectURL(previewUrl);
       }
@@ -95,28 +109,47 @@ export default function AddItemModal({
   }, [previewUrl, imageFile]);
 
   const handleApply = () => {
-    if (name.trim() && quantity.trim()) {
-      const itemData: ItemData = {
-        name: name.trim(),
-        isConsumable,
-        quantity: Number.parseInt(quantity, 10),
-        imageFile,
-      };
+    if (!name.trim() || !quantity.trim()) {
+      toast.error('모든 항목을 입력해 주세요.');
+      return;
+    }
 
-      // Add id if in edit mode
-      if (isEditMode && editItem) {
-        itemData.id = editItem.id;
+    const itemRequest: ItemRequest = {
+      name: name.trim(),
+      type: isConsumable ? ItemRequestType.CONSUMPTION : ItemRequestType.RENTAL,
+      count: parseInt(quantity, 10),
+    };
 
-        // If we're not changing the image, keep the existing URL
-        if (!imageFile && editItem.imageUrl) {
-          itemData.imageUrl = editItem.imageUrl;
-        }
+    if (isEditMode && editItem) {
+      const formData = new FormData();
+      formData.append('itemRequest', JSON.stringify(itemRequest));
+      if (imageFile) formData.append('image', imageFile);
+
+      updateItem(editItem.id, {
+        itemRequest,
+        image: imageFile ?? new Blob(), // 타입 만족용, 실제 서버는 없으면 무시
+      })
+        .then(() => {
+          toast.success('물품이 성공적으로 수정되었습니다.');
+          resetForm();
+          onApply();
+          onClose();
+        })
+        .catch(() => {
+          toast.error('물품 수정 중 오류가 발생했습니다.');
+        });
+    } else {
+      if (!imageFile) {
+        toast.error('이미지를 반드시 첨부해 주세요.');
+        return;
       }
 
-      onApply(itemData);
-      if (!isEditMode) {
-        resetForm();
-      }
+      mutate({
+        data: {
+          itemRequest,
+          image: imageFile,
+        },
+      });
     }
   };
 
@@ -140,9 +173,8 @@ export default function AddItemModal({
         className="w-full max-w-md overflow-hidden rounded-md bg-white shadow-[0_1px_3px_rgba(0,0,0,0.1)]"
         style={{ maxHeight: 'calc(100vh - 40px)' }}
       >
-        {/* Header */}
-        <div className="flex items-center justify-between border-b border-[#e5e8eb] px-6 py-4">
-          <h2 className="text-xl font-bold text-[#191f28]">
+        <div className="flex items-center justify-between border-b border-[#e5e8eb] px-6 py-4 ">
+          <h2 className="text-xl font-bold text-[#191f28] ">
             {isEditMode ? '복지 물품 수정하기' : '복지 물품 추가하기'}
           </h2>
           <button
@@ -202,7 +234,6 @@ export default function AddItemModal({
               </div>
             </div>
 
-            {/* Quantity */}
             <div className="space-y-2">
               <label htmlFor="item-quantity" className="block text-sm font-medium text-[#4e5968]">
                 수량
@@ -258,7 +289,7 @@ export default function AddItemModal({
         <div className="border-t border-[#e5e8eb] px-6 py-4">
           <button
             onClick={handleApply}
-            className="h-12 w-full rounded-md bg-[#004A98] text-base font-medium text-white hover:bg-[#003a7a] focus:outline-none focus:ring-2 focus:ring-[#004A98] focus:ring-offset-2"
+            className="h-12 w-full rounded-md bg-[#004A98] text-base font-medium text-white hover:bg-[#003a7a] focus:outline-none focus:ring-2 focus:ring-[#004A98] focus:ring-offset-2 cursor-pointer"
           >
             {isEditMode ? '수정하기' : '물품 추가'}
           </button>

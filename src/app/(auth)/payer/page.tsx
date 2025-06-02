@@ -116,7 +116,7 @@ export default function PayerPage() {
           </div>
           <button
             onClick={handleExcelDownload}
-            className="flex h-10 shrink-0 items-center gap-1 rounded-md border border-[#e5e8eb] bg-white px-4 text-sm font-medium text-[#4e5968] hover:bg-[#f2f4f6]"
+            className="flex h-10 shrink-0 items-center gap-1 rounded-md border border-[#e5e8eb] bg-white px-4 text-sm font-medium text-[#4e5968] hover:bg-[#f2f4f6] cursor-pointer"
           >
             <FileDown className="h-4 w-4" />
             <span className="hidden sm:inline">엑셀 다운로드</span>
@@ -124,7 +124,7 @@ export default function PayerPage() {
           </button>
           <button
             onClick={() => setIsModalOpen(true)}
-            className="flex h-10 shrink-0 items-center gap-1 rounded-md bg-[#004A98] px-4 text-sm font-medium text-white hover:bg-[#003a7a] focus:outline-none focus:ring-2 focus:ring-[#004A98] focus:ring-offset-2"
+            className="flex h-10 shrink-0 items-center gap-1 rounded-md bg-[#004A98] px-4 text-sm font-medium text-white hover:bg-[#003a7a] focus:outline-none focus:ring-2 focus:ring-[#004A98] focus:ring-offset-2 cursor-pointer"
           >
             <Plus className="h-4 w-4" />
             <span className="hidden sm:inline">새로운 납부 등록</span>

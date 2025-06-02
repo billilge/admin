@@ -20,7 +20,7 @@ interface Student {
 
 export default function AdminPage() {
   const [currentPage, setCurrentPage] = useState(1);
-  const totalPages = 2;
+
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   const queryClient = useQueryClient();
@@ -62,6 +62,8 @@ export default function AdminPage() {
     },
   );
 
+  const totalPages = adminListData?.totalPage ?? 1;
+
   const handleAddAdmins = (selectedStudents: Student[]) => {
     const requestData: AdminRequest = {
       memberIds: selectedStudents.map((s) => s.id),
@@ -89,7 +91,7 @@ export default function AdminPage() {
           </div>
           <button
             onClick={() => setIsModalOpen(true)}
-            className="flex h-10 shrink-0 items-center gap-1 rounded-md bg-[#004A98] px-4 text-sm font-medium text-white hover:bg-[#003a7a] focus:outline-none focus:ring-2 focus:ring-[#004A98] focus:ring-offset-2"
+            className="flex h-10 shrink-0 items-center gap-1 rounded-md bg-[#004A98] px-4 text-sm font-medium text-white hover:bg-[#003a7a] focus:outline-none focus:ring-2 focus:ring-[#004A98] focus:ring-offset-2 cursor-pointe"
           >
             <Plus className="h-4 w-4" />
             <span className="hidden sm:inline">새로운 관리자 추가하기</span>
@@ -136,7 +138,7 @@ export default function AdminPage() {
           <button
             onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
             disabled={currentPage === 1}
-            className="flex h-8 w-8 items-center justify-center rounded-md border border-[#e5e8eb] bg-white text-[#4e5968] disabled:opacity-50"
+            className="flex h-8 w-8 items-center justify-center rounded-md border border-[#e5e8eb] bg-white text-[#4e5968] disabled:opacity-50 cursor-pointe"
           >
             <ChevronLeft className="h-4 w-4" />
           </button>
@@ -148,7 +150,7 @@ export default function AdminPage() {
           <button
             onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
             disabled={currentPage === totalPages}
-            className="flex h-8 w-8 items-center justify-center rounded-md border border-[#e5e8eb] bg-white text-[#4e5968] disabled:opacity-50"
+            className="flex h-8 w-8 items-center justify-center rounded-md border border-[#e5e8eb] bg-white text-[#4e5968] disabled:opacity-50 cursor-pointer"
           >
             <ChevronRight className="h-4 w-4" />
           </button>
