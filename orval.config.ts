@@ -1,3 +1,5 @@
+import 'dotenv/config'
+
 export default {
     billilge: {
         input: process.env.OPENAPI_SCHEMA_URL,

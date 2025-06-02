@@ -17,8 +17,9 @@ export interface RentalHistoryDetail {
   rentalHistoryId: number;
   /** 대여한 회원의 요약 정보 */
   member: MemberSummary;
-  /** 대여한 물품의 요약 정보 */
-  item: ItemSummary;
+  // /** 대여한 물품의 요약 정보 */
+  // item: ItemSummary;
+  itemName: string;
   /** 대여 시작 시각 */
   rentAt: string;
   /** 반납 시각 (반납되지 않았으면 null) */
