@@ -1,5 +1,6 @@
 'use client';
 
+import { useQueryClient } from '@tanstack/react-query';
 import {
   Search,
   Plus,
@@ -10,7 +11,11 @@ import {
   FileDown,
 } from 'lucide-react';
 import { useState } from 'react';
-import PayerAddModal from '@/components/modal/AddPayerModal';
+import toast from 'react-hot-toast';
+import { useGetAllPayers } from '@/api-client';
+import { useAddPayers } from '@/api-client';
+import { createPayerExcel } from '@/api-client';
+import AddPayerModal from '@/components/modal/AddPayerModal';
 
 interface Payer {
   id: number;
@@ -20,106 +25,53 @@ interface Payer {
 
 export default function PayerPage() {
   const [currentPage, setCurrentPage] = useState(1);
-  const totalPages = 2;
   const [isModalOpen, setIsModalOpen] = useState(false);
 
-  // Sample data
-  const [payers, setPayers] = useState([
-    {
-      id: 1,
-      name: '김민수',
-      studentId: '20223456',
-      isMember: true,
-    },
-    {
-      id: 2,
-      name: '이지은',
-      studentId: '20223457',
-      isMember: true,
-    },
-    {
-      id: 3,
-      name: '박준호',
-      studentId: '20223458',
-      isMember: false,
-    },
-    {
-      id: 4,
-      name: '최유진',
-      studentId: '20223459',
-      isMember: true,
-    },
-    {
-      id: 5,
-      name: '정승우',
-      studentId: '20223460',
-      isMember: false,
-    },
-    {
-      id: 6,
-      name: '한소희',
-      studentId: '20223461',
-      isMember: true,
-    },
-    {
-      id: 7,
-      name: '강동원',
-      studentId: '20223462',
-      isMember: true,
-    },
-    {
-      id: 8,
-      name: '서지혜',
-      studentId: '20223463',
-      isMember: false,
-    },
-  ]);
+  const [searchInput, setSearchInput] = useState('');
+  const [searchKeyword, setSearchKeyword] = useState('');
+
+  const { data, isLoading } = useGetAllPayers({
+    pageNo: currentPage - 1,
+    search: searchKeyword || undefined,
+  });
+
+  const payers = data?.payers ?? [];
+  const totalPages = data?.totalPage ?? 1;
+
+  const { mutate: addPayers } = useAddPayers();
+
+  const queryClient = useQueryClient();
 
   const handleAddPayers = (newPayers: Payer[]) => {
-    // Add new payers to the list
-    const payersToAdd = newPayers.map((payer) => ({
-      id: payers.length + payer.id,
-      name: payer.name,
-      studentId: payer.studentId,
-      isMember: true, // New payers are members by default
-    }));
+    const payload = {
+      data: {
+        payers: newPayers.map(({ name, studentId }) => ({
+          name,
+          studentId,
+        })),
+      },
+    };
 
-    // Filter out duplicates based on studentId
-    const existingStudentIds = new Set(payers.map((p) => p.studentId));
-    const filteredPayersToAdd = payersToAdd.filter((p) => !existingStudentIds.has(p.studentId));
-
-    setPayers([...payers, ...filteredPayersToAdd]);
-    setIsModalOpen(false);
+    addPayers(payload, {
+      onSuccess: () => {
+        toast.success('납부자가 추가되었습니다.');
+        queryClient.invalidateQueries({ queryKey: ['getAllPayers'] });
+        setIsModalOpen(false);
+      },
+      onError: () => {
+        toast.error('추가 중 오류가 발생했습니다.');
+      },
+    });
   };
 
   const handleExcelDownload = async () => {
     try {
-      // Dynamically import the xlsx library
-      const XLSX = await import('xlsx');
+      const response = await createPayerExcel(); // responseType: 'blob' 가정
 
-      // Prepare the data for Excel
-      const excelData = payers.map((payer) => ({
-        이름: payer.name,
-        학번: payer.studentId,
-        '회원 여부': payer.isMember ? 'O' : 'X',
-      }));
-
-      // Create a worksheet
-      const worksheet = XLSX.utils.json_to_sheet(excelData);
-
-      // Create a workbook
-      const workbook = XLSX.utils.book_new();
-      XLSX.utils.book_append_sheet(workbook, worksheet, '납부자 목록');
-
-      // Generate Excel file
-      const excelBuffer = XLSX.write(workbook, { bookType: 'xlsx', type: 'array' });
-
-      // Create a Blob from the buffer
-      const blob = new Blob([excelBuffer], {
+      const blob = new Blob([response as BlobPart], {
         type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
       });
 
-      // Create download link and trigger download
       const fileName = `납부자_목록_${new Date().toISOString().split('T')[0]}.xlsx`;
       const url = URL.createObjectURL(blob);
       const link = document.createElement('a');
@@ -128,9 +80,21 @@ export default function PayerPage() {
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
+      URL.revokeObjectURL(url);
     } catch (error) {
-      console.error('Excel 다운로드 중 오류가 발생했습니다:', error);
-      alert('Excel 파일 다운로드에 실패했습니다.');
+      console.error('엑셀 다운로드 오류:', error);
+      toast.error('엑셀 다운로드에 실패했습니다.');
+    }
+  };
+
+  const handleSearch = () => {
+    setCurrentPage(1);
+    setSearchKeyword(searchInput.trim());
+  };
+
+  const handleSearchKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter') {
+      handleSearch();
     }
   };
 
@@ -143,6 +107,9 @@ export default function PayerPage() {
             <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[#8b95a1]" />
             <input
               type="text"
+              value={searchInput}
+              onChange={(e) => setSearchInput(e.target.value)}
+              onKeyDown={handleSearchKeyDown}
               placeholder="학번 또는 이름을 입력해 주세요"
               className="h-10 w-full rounded-md border border-[#e5e8eb] bg-[#f9fbfc] pl-10 pr-4 text-sm text-[#191f28] placeholder:text-[#8b95a1] focus:border-[#3182f6] focus:outline-none focus:ring-1 focus:ring-[#3182f6]"
             />
@@ -185,7 +152,7 @@ export default function PayerPage() {
             <tbody>
               {payers.map((payer) => (
                 <tr
-                  key={payer.id}
+                  key={payer.payerId}
                   className="border-b border-[#e5e8eb] last:border-b-0 hover:bg-[#f9fbfc]"
                 >
                   <td className="whitespace-nowrap px-6 py-4 text-sm text-[#191f28]">
@@ -195,7 +162,7 @@ export default function PayerPage() {
                     {payer.studentId}
                   </td>
                   <td className="whitespace-nowrap px-6 py-4 text-sm">
-                    {payer.isMember ? (
+                    {payer.registered ? (
                       <div className="flex items-center gap-1 text-[#1b8b5a]">
                         <CheckCircle className="h-4 w-4" />
                         <span>O</span>
@@ -240,8 +207,7 @@ export default function PayerPage() {
         <div></div>
       </div>
 
-      {/* Payer Add Modal */}
-      <PayerAddModal
+      <AddPayerModal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
         onApply={handleAddPayers}
