@@ -20,12 +20,11 @@ export default function DeleteItemModal({
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
       <div className="w-full max-w-md rounded-md bg-white shadow-[0_1px_3px_rgba(0,0,0,0.1)]">
-        {/* Header */}
         <div className="flex items-center justify-between border-b border-[#e5e8eb] px-6 py-4">
           <h2 className="text-xl font-bold text-[#191f28]">물품 삭제</h2>
           <button
             onClick={onClose}
-            className="rounded-full p-1 text-[#8b95a1] hover:bg-[#f2f4f6] hover:text-[#4e5968]"
+            className="rounded-full p-1 text-[#8b95a1] hover:bg-[#f2f4f6] hover:text-[#4e5968] cursor-pointer"
           >
             <svg
               xmlns="http://www.w3.org/2000/svg"
@@ -43,7 +42,6 @@ export default function DeleteItemModal({
           </button>
         </div>
 
-        {/* Content */}
         <div className="px-6 py-4">
           <p className="text-sm text-[#4e5968]">
             정말로 <span className="font-medium text-[#191f28]">{itemName}</span>을(를)
@@ -71,17 +69,16 @@ export default function DeleteItemModal({
           <p className="mt-2 text-sm text-[#4e5968]">삭제 후에는 복구할 수 없습니다.</p>
         </div>
 
-        {/* Footer */}
         <div className="flex items-center justify-end gap-2 border-t border-[#e5e8eb] px-6 py-4">
           <button
             onClick={onClose}
-            className="rounded-md px-4 py-2 text-sm font-medium text-[#4e5968] hover:bg-[#f2f4f6] focus:outline-none focus:ring-2 focus:ring-[#d1d6db] focus:ring-offset-2"
+            className="rounded-md px-4 py-2 text-sm font-medium text-[#4e5968] hover:bg-[#f2f4f6] focus:outline-none focus:ring-2 focus:ring-[#d1d6db] focus:ring-offset-2 cursor-pointer"
           >
             취소
           </button>
           <button
             onClick={onDelete}
-            className="rounded-md bg-[#e93c3c] px-4 py-2 text-sm font-medium text-white hover:bg-[#c42b2b] focus:outline-none focus:ring-2 focus:ring-[#e93c3c] focus:ring-offset-2"
+            className="rounded-md bg-[#e93c3c] px-4 py-2 text-sm font-medium text-white hover:bg-[#c42b2b] focus:outline-none focus:ring-2 focus:ring-[#e93c3c] focus:ring-offset-2 cursor-pointer"
           >
             삭제
           </button>

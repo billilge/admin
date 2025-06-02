@@ -215,7 +215,7 @@ export default function AddItemModal({
                     onChange={() => setIsConsumable(false)}
                     className="peer h-0 w-0 opacity-0"
                   />
-                  <span className="flex h-12 items-center justify-center rounded-md border border-[#e5e8eb] bg-[#f9fbfc] px-6 text-sm text-[#4e5968] peer-checked:border-[#004A98] peer-checked:bg-[#e6eef5] peer-checked:text-[#004A98] peer-checked:font-medium">
+                  <span className="flex h-12 items-center justify-center rounded-md border border-[#e5e8eb] bg-[#f9fbfc] px-6 text-sm text-[#4e5968] peer-checked:border-[#004A98] peer-checked:bg-[#e6eef5] peer-checked:text-[#004A98] peer-checked:font-medium cursor-pointer">
                     대여물품
                   </span>
                 </label>
@@ -227,7 +227,7 @@ export default function AddItemModal({
                     onChange={() => setIsConsumable(true)}
                     className="peer h-0 w-0 opacity-0"
                   />
-                  <span className="flex h-12 items-center justify-center rounded-md border border-[#e5e8eb] bg-[#f9fbfc] px-6 text-sm text-[#4e5968] peer-checked:border-[#004A98] peer-checked:bg-[#e6eef5] peer-checked:text-[#004A98] peer-checked:font-medium">
+                  <span className="flex h-12 items-center justify-center rounded-md border border-[#e5e8eb] bg-[#f9fbfc] px-6 text-sm text-[#4e5968] peer-checked:border-[#004A98] peer-checked:bg-[#e6eef5] peer-checked:text-[#004A98] peer-checked:font-medium cursor-pointer">
                     소모품
                   </span>
                 </label>

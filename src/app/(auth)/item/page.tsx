@@ -22,12 +22,17 @@ export default function ItemPage() {
   const [currentEditItem, setCurrentEditItem] = useState<Item | null>(null);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [itemToDelete, setItemToDelete] = useState<Item | null>(null);
+  const [searchKeyword, setSearchKeyword] = useState('');
 
   const { data, isLoading, refetch } = useGetAllAdminItems({ pageNo: currentPage });
 
   const totalPages = (data?.totalPage ?? 1) - 1;
 
   const items = data?.items ?? [];
+
+  const filteredItems = items.filter((item) =>
+    item.itemName.toLowerCase().includes(searchKeyword.toLowerCase()),
+  );
 
   const handleEditItem = (item: Item) => {
     setCurrentEditItem(item);
@@ -89,6 +94,8 @@ export default function ItemPage() {
             <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[#8b95a1]" />
             <input
               type="text"
+              value={searchKeyword}
+              onChange={(e) => setSearchKeyword(e.target.value)}
               placeholder="물품명을 입력해 주세요"
               className="h-10 w-full rounded-md border border-[#e5e8eb] bg-[#f9fbfc] pl-10 pr-4 text-sm text-[#191f28] placeholder:text-[#8b95a1] focus:border-[#004A98] focus:outline-none focus:ring-1 focus:ring-[#004A98]"
             />
@@ -134,7 +141,7 @@ export default function ItemPage() {
               </tr>
             </thead>
             <tbody>
-              {items.map((item) => (
+              {filteredItems.map((item) => (
                 <tr
                   key={item.itemId}
                   className="border-b border-[#e5e8eb] last:border-b-0 hover:bg-[#f9fbfc]"

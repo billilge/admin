@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import type { ReactNode } from 'react';
-import { useAuthRedirect } from '@/hooks/useAuthRedirect';
+import useAuthRedirect from '@/hooks/useAuthRedirect';
 
 interface DesktopLayoutProps {
   children: ReactNode;

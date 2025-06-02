@@ -1,18 +1,13 @@
 import { useRouter } from 'next/navigation';
 import { useEffect } from 'react';
-import { getCookie } from '@/utils/cookie';
 
-export const useAuthRedirect = () => {
+export default function useAuthRedirect() {
   const router = useRouter();
-  // const token = getCookie('token');
-  const token = localStorage.getItem('token');
 
   useEffect(() => {
-    // console.log(token);
-    // console.log(document.cookie);
-
+    const token = localStorage.getItem('token');
     if (!token) {
       router.push('/login');
     }
-  }, [token, router]);
-};
+  }, [router]);
+}
