@@ -2,7 +2,7 @@
 
 import { X, Check } from 'lucide-react';
 import { useState, useEffect } from 'react';
-import { useGetAllPayers } from '@/api-client';
+import { useGetAllMembers, useGetAllPayers } from '@/api-client';
 
 interface Student {
   id: number;
@@ -49,10 +49,10 @@ export default function AddAdminModal({ isOpen, onClose, onApply }: AddAdminModa
   };
 
   const {
-    data: payerData,
+    data: memberData,
     isLoading,
     isError,
-  } = useGetAllPayers(
+  } = useGetAllMembers(
     searchKeyword
       ? {
           pageNo: currentPage - 1,
@@ -76,21 +76,18 @@ export default function AddAdminModal({ isOpen, onClose, onApply }: AddAdminModa
   };
 
   const handleApply = () => {
-    console.log('[DEBUG] 적용 버튼 클릭됨'); // 가장 먼저 실행되어야 함
-    if (!payerData?.payers) {
-      console.warn('[DEBUG] payerData가 없음', payerData);
+    if (!memberData?.members) {
       return;
     }
-    const selectedStudents = payerData.payers
-      .filter((payer) => selectedIds.has(payer.payerId))
-      .map((payer) => ({
-        id: payer.payerId,
-        name: payer.name,
-        studentId: payer.studentId,
+    const selectedStudents = memberData.members
+      .filter((member) => selectedIds.has(member.memberId))
+      .map((member) => ({
+        id: member.memberId,
+        name: member.name,
+        studentId: member.studentId,
         selected: true,
       }));
 
-    console.log('[DEBUG] onApply 호출됨');
     onApply(selectedStudents);
   };
 
@@ -131,9 +128,9 @@ export default function AddAdminModal({ isOpen, onClose, onApply }: AddAdminModa
 
           {isLoading ? (
             <div className="mt-4 text-center text-sm text-gray-500">불러오는 중...</div>
-          ) : isError || !payerData ? (
+          ) : isError || !memberData ? (
             <div className="mt-4 text-center text-sm text-gray-500">검색어를 입력해주세요.</div>
-          ) : payerData.payers.length === 0 ? (
+          ) : memberData.members.length === 0 ? (
             <div className="mt-4 text-center text-sm text-gray-500">검색 결과가 없습니다.</div>
           ) : (
             <table className="mt-4 w-full">
@@ -145,19 +142,19 @@ export default function AddAdminModal({ isOpen, onClose, onApply }: AddAdminModa
                 </tr>
               </thead>
               <tbody>
-                {payerData.payers.map((student) => (
-                  <tr key={student.payerId} className="border-b border-[#f2f4f6] last:border-b-0">
+                {memberData.members.map((student) => (
+                  <tr key={student.memberId} className="border-b border-[#f2f4f6] last:border-b-0">
                     <td className="py-3 pr-2">
                       <div className="flex items-center justify-center">
                         <div className="relative flex items-center justify-center">
                           <input
                             type="checkbox"
-                            id={`student-${student.payerId}`}
-                            checked={selectedIds.has(student.payerId)}
-                            onChange={() => toggleStudent(student.payerId)}
+                            id={`student-${student.memberId}`}
+                            checked={selectedIds.has(student.memberId)}
+                            onChange={() => toggleStudent(student.memberId)}
                             className="peer h-5 w-5 cursor-pointer appearance-none rounded-md border border-[#d1d6db] bg-white checked:border-[#004A98] checked:bg-[#004A98] hover:border-[#004A98] focus:outline-none focus:ring-2 focus:ring-[#004A98] focus:ring-offset-2"
                           />
-                          {selectedIds.has(student.payerId) && (
+                          {selectedIds.has(student.memberId) && (
                             <Check className="pointer-events-none absolute h-3 w-3 text-white" />
                           )}
                         </div>
@@ -165,7 +162,7 @@ export default function AddAdminModal({ isOpen, onClose, onApply }: AddAdminModa
                     </td>
                     <td className="py-3 pl-2">
                       <label
-                        htmlFor={`student-${student.payerId}`}
+                        htmlFor={`student-${student.memberId}`}
                         className="cursor-pointer text-sm text-[#191f28]"
                       >
                         {student.name}

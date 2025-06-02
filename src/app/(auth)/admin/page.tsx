@@ -1,11 +1,13 @@
 'use client';
 
 import { useQueryClient } from '@tanstack/react-query';
+import { useMutation } from '@tanstack/react-query';
 import { Search, Plus, ChevronLeft, ChevronRight } from 'lucide-react';
 import { useState } from 'react';
 import toast from 'react-hot-toast';
 import { getGetAdminListQueryKey, useGetAdminList } from '@/api-client';
 import { useAddAdmins } from '@/api-client';
+import { addAdmins } from '@/api-client'; // orval로 생성된 진짜 함수 import
 import { AdminRequest } from '@/api-client/model';
 import AddAdminModal from '@/components/modal/AddAdminModal';
 
@@ -23,16 +25,23 @@ export default function AdminPage() {
 
   const queryClient = useQueryClient();
 
-  // const addAdminsMutation = useAddAdmins();
-  const addAdminsMutation = useAddAdmins({
-    mutation: {
-      onSuccess: () => {
-        toast.success('관리자가 성공적으로 추가되었습니다.');
-        queryClient.invalidateQueries({ queryKey: getGetAdminListQueryKey() });
-      },
-      onError: () => {
-        toast.error('관리자 추가에 실패했습니다.');
-      },
+  const addAdminsMutation = useMutation({
+    mutationFn: (data: AdminRequest) => addAdmins(data),
+    onSuccess: () => {
+      toast.success('관리자가 성공적으로 추가되었습니다.');
+
+      queryClient.invalidateQueries({
+        queryKey: getGetAdminListQueryKey({
+          pageNo: currentPage - 1,
+          size: 10,
+          criteria: 'name',
+        }),
+      });
+
+      setIsModalOpen(false);
+    },
+    onError: () => {
+      toast.error('관리자 추가에 실패했습니다.');
     },
   });
 
@@ -54,12 +63,11 @@ export default function AdminPage() {
   );
 
   const handleAddAdmins = (selectedStudents: Student[]) => {
-    console.log('추가 호출됨');
     const requestData: AdminRequest = {
       memberIds: selectedStudents.map((s) => s.id),
     };
 
-    addAdminsMutation.mutate({ data: requestData });
+    addAdminsMutation.mutate(requestData);
     setIsModalOpen(false);
   };
 
