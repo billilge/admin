@@ -50,7 +50,7 @@ export default function DesktopLayout({ children }: DesktopLayoutProps) {
               물품 관리
             </Link>
             <Link
-              href="/logout"
+              href="/login"
               className="rounded-md px-3 py-2 text-sm font-medium text-[#4e5968] hover:bg-[#f2f4f6] hover:text-[#191f28]"
             >
               로그아웃
@@ -58,7 +58,7 @@ export default function DesktopLayout({ children }: DesktopLayoutProps) {
           </nav>
           <div className="flex md:hidden">
             <Link
-              href="/logout"
+              href="/login"
               className="rounded-md px-3 py-2 text-sm font-medium text-[#4e5968] hover:bg-[#f2f4f6] hover:text-[#191f28]"
             >
               로그아웃
