@@ -1,14 +1,17 @@
+'use client';
+
 import Link from 'next/link';
 import type { ReactNode } from 'react';
+import { useAuthRedirect } from '@/hooks/useAuthRedirect';
 
 interface DesktopLayoutProps {
   children: ReactNode;
 }
 
 export default function DesktopLayout({ children }: DesktopLayoutProps) {
+  useAuthRedirect();
   return (
     <div className="min-h-screen bg-[#f9fbfc]">
-      {/* Header */}
       <header className="sticky top-0 z-10 border-b border-[#e5e8eb] bg-white shadow-sm">
         <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 md:px-6">
           <div className="flex items-center gap-2">
@@ -53,8 +56,6 @@ export default function DesktopLayout({ children }: DesktopLayoutProps) {
               로그아웃
             </Link>
           </nav>
-
-          {/* Mobile menu button */}
           <div className="flex md:hidden">
             <Link
               href="/logout"
@@ -66,7 +67,6 @@ export default function DesktopLayout({ children }: DesktopLayoutProps) {
         </div>
       </header>
 
-      {/* Main content */}
       <main className="mx-auto max-w-7xl px-4 py-8 pb-20 md:px-6 md:pb-8">{children}</main>
     </div>
   );

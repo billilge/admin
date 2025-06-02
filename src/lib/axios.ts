@@ -9,8 +9,6 @@ export const apiClient = axios.create({
 apiClient.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem('token');
-    console.log(token);
-    console.log('token', token);
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
@@ -23,7 +21,6 @@ apiClient.interceptors.request.use(
 apiClient.interceptors.response.use(
   (response) => response,
   (error) => {
-    // 401이면 로그아웃 처리 or 토큰 리프레시 등
     if (error.response?.status === 401) {
       console.warn('인증 만료됨');
     }

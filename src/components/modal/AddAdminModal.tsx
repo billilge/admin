@@ -111,7 +111,6 @@ export default function AddAdminModal({ isOpen, onClose, onApply }: AddAdminModa
             <X className="h-5 w-5" />
           </button>
         </div>
-
         <div className="max-h-[350px] overflow-y-auto px-6 py-4">
           <div className="flex gap-2">
             <input
@@ -124,7 +123,7 @@ export default function AddAdminModal({ isOpen, onClose, onApply }: AddAdminModa
             />
             <button
               onClick={handleSearch}
-              className="rounded-md bg-[#004A98] px-4 text-sm font-medium text-white hover:bg-[#003a7a]"
+              className="rounded-md bg-[#004A98] px-4 text-sm font-medium text-white hover:bg-[#003a7a] whitespace-nowrap"
             >
               검색
             </button>
@@ -179,8 +178,6 @@ export default function AddAdminModal({ isOpen, onClose, onApply }: AddAdminModa
             </table>
           )}
         </div>
-
-        {/* Footer */}
         <div className="border-t border-[#e5e8eb] px-6 py-4">
           <button
             onClick={handleApply}
