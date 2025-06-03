@@ -6,8 +6,7 @@ import { Search, Plus, ChevronLeft, ChevronRight } from 'lucide-react';
 import { useState } from 'react';
 import toast from 'react-hot-toast';
 import { getGetAdminListQueryKey, useGetAdminList } from '@/api-client';
-import { useAddAdmins } from '@/api-client';
-import { addAdmins } from '@/api-client'; // orval로 생성된 진짜 함수 import
+import { addAdmins } from '@/api-client';
 import { AdminRequest } from '@/api-client/model';
 import AddAdminModal from '@/components/modal/AddAdminModal';
 
@@ -68,7 +67,6 @@ export default function AdminPage() {
     const requestData: AdminRequest = {
       memberIds: selectedStudents.map((s) => s.id),
     };
-
     addAdminsMutation.mutate(requestData);
     setIsModalOpen(false);
   };

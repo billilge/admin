@@ -3,19 +3,16 @@
 import { useQuery } from '@tanstack/react-query';
 import {
   Search,
-  Filter,
   ChevronLeft,
   ChevronRight,
   Calendar,
   Clock,
-  User,
   Plus,
   Trash2,
   ChevronDown,
   Check,
 } from 'lucide-react';
 import { useState, useRef, useEffect } from 'react';
-import { createRental, getAllRentalHistories, useGetMemberRentalHistory } from '@/api-client';
 import { useUpdateRentalStatus } from '@/api-client';
 import { getGetAllRentalHistoriesQueryOptions } from '@/api-client';
 import { RentalStatusUpdateRequestRentalStatus } from '@/api-client/model';
