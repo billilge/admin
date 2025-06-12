@@ -25,10 +25,8 @@ export default function ItemPage() {
   const [searchKeyword, setSearchKeyword] = useState('');
 
   const { data, isLoading, refetch } = useGetAllAdminItems({ pageNo: currentPage });
-
-  const totalPages = (data?.totalPage ?? 1) - 1;
-
   const items = data?.items ?? [];
+  const totalPages = (data?.totalPage ?? 1) - 1;
 
   const filteredItems = items.filter((item) =>
     item.itemName.toLowerCase().includes(searchKeyword.toLowerCase()),
