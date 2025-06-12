@@ -1,51 +1,53 @@
 'use client';
 
+// TODO : 이미 관리자로 등록되어 있는 사람을 중복 추가했을 때 예외 처리 필요
+
 import { X, Check } from 'lucide-react';
-import { useState, useEffect } from 'react';
-import { useGetAllMembers, useGetAllPayers } from '@/api-client';
-
-interface Student {
-  id: number;
-  name: string;
-  studentId: string;
-  selected: boolean;
-}
-
-interface AddAdminModalProps {
-  isOpen: boolean;
-  onClose: () => void;
-  onApply: (selectedStudents: Student[]) => void;
-}
+import { useEffect, useState } from 'react';
+import { useGetAllMembers } from '@/api-client';
+import { AddAdminModalProps } from '@/types/modal';
 
 export default function AddAdminModal({ isOpen, onClose, onApply }: AddAdminModalProps) {
   const [currentPage, setCurrentPage] = useState(1);
   const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set());
-  const [studentSearchTerm, setStudentSearchTerm] = useState('');
+  const [inputKeyword, setInputKeyword] = useState('');
+  const [searchKeyword, setSearchKeyword] = useState('');
 
   useEffect(() => {
-    if (isOpen) {
-      document.body.style.overflow = 'hidden';
-    } else {
-      document.body.style.overflow = 'unset';
-    }
+    document.body.style.overflow = isOpen ? 'hidden' : 'unset';
     return () => {
       document.body.style.overflow = 'unset';
     };
   }, [isOpen]);
 
-  const [inputKeyword, setInputKeyword] = useState('');
-  const [searchKeyword, setSearchKeyword] = useState('');
-  // const [currentPage, setCurrentPage] = useState(1);
-
   const handleSearch = () => {
-    setCurrentPage(1); // 검색 시 페이지 초기화
+    setCurrentPage(1);
     setSearchKeyword(inputKeyword.trim());
   };
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === 'Enter') {
-      handleSearch();
-    }
+    if (e.key === 'Enter') handleSearch();
+  };
+
+  const toggleStudent = (id: number) => {
+    setSelectedIds((prev) =>
+      prev.has(id) ? new Set([...prev].filter((v) => v !== id)) : new Set(prev).add(id),
+    );
+  };
+
+  const handleApply = () => {
+    if (!memberData?.members) return;
+
+    const selectedStudents = memberData.members
+      .filter((member) => selectedIds.has(member.memberId))
+      .map(({ memberId, name, studentId }) => ({
+        id: memberId,
+        name,
+        studentId,
+        selected: true,
+      }));
+
+    onApply(selectedStudents);
   };
 
   const {
@@ -69,37 +71,70 @@ export default function AddAdminModal({ isOpen, onClose, onApply }: AddAdminModa
     },
   );
 
-  const toggleStudent = (id: number) => {
-    setSelectedIds((prev) =>
-      prev.has(id) ? new Set([...prev].filter((v) => v !== id)) : new Set(prev).add(id),
+  if (!isOpen) return null;
+
+  // 조건부 렌더링 분리
+  const renderTable = () => {
+    if (isLoading) {
+      return <p className="mt-4 text-center text-sm text-gray-500">불러오는 중...</p>;
+    }
+    if (isError || !memberData) {
+      return <p className="mt-4 text-center text-sm text-gray-500">검색어를 입력해주세요.</p>;
+    }
+    if (memberData.members.length === 0) {
+      return <p className="mt-4 text-center text-sm text-gray-500">검색 결과가 없습니다.</p>;
+    }
+
+    return (
+      <table className="mt-4 w-full">
+        <thead>
+          <tr>
+            <th className="w-12 pb-3"></th>
+            <th className="pb-3 pl-2 text-left text-sm font-medium text-[#4e5968]">이름</th>
+            <th className="pb-3 text-left text-sm font-medium text-[#4e5968]">학번</th>
+          </tr>
+        </thead>
+        <tbody>
+          {memberData.members.map((student) => {
+            const isSelected = selectedIds.has(student.memberId);
+            return (
+              <tr key={student.memberId} className="border-b border-[#f2f4f6] last:border-b-0">
+                <td className="py-3 pr-2">
+                  <div className="flex justify-center items-center">
+                    <label
+                      htmlFor={`student-${student.memberId}`}
+                      className="relative cursor-pointer"
+                    >
+                      <input
+                        id={`student-${student.memberId}`}
+                        type="checkbox"
+                        checked={isSelected}
+                        onChange={() => toggleStudent(student.memberId)}
+                        className="peer h-5 w-5 appearance-none rounded-md border border-[#d1d6db] bg-white checked:border-[#004A98] checked:bg-[#004A98] hover:border-[#004A98] focus:outline-none focus:ring-2 focus:ring-[#004A98] focus:ring-offset-2"
+                      />
+                      {isSelected && (
+                        <Check className="absolute inset-0 m-auto h-3 w-3 text-white pointer-events-none" />
+                      )}
+                    </label>
+                  </div>
+                </td>
+                <td className="py-3 pl-2 text-sm text-[#191f28]">{student.name}</td>
+                <td className="py-3 text-left text-sm text-[#6b7684]">{student.studentId}</td>
+              </tr>
+            );
+          })}
+        </tbody>
+      </table>
     );
   };
-
-  const handleApply = () => {
-    if (!memberData?.members) {
-      return;
-    }
-    const selectedStudents = memberData.members
-      .filter((member) => selectedIds.has(member.memberId))
-      .map((member) => ({
-        id: member.memberId,
-        name: member.name,
-        studentId: member.studentId,
-        selected: true,
-      }));
-
-    onApply(selectedStudents);
-  };
-
-  if (!isOpen) return <></>;
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
       <div
-        className="w-full max-w-md overflow-hidden rounded-md bg-white shadow-[0_1px_3px_rgba(0,0,0,0.1)]"
+        className="w-full max-w-md overflow-hidden rounded-md bg-white shadow-md"
         style={{ maxHeight: 'calc(100vh - 40px)' }}
       >
-        <div className="flex items-center justify-between border-b border-[#e5e8eb] px-6 py-4">
+        <div className="flex justify-between items-center border-b border-[#e5e8eb] px-6 py-4">
           <h2 className="text-xl font-bold text-[#191f28]">관리자 추가하기</h2>
           <button
             onClick={onClose}
@@ -108,6 +143,7 @@ export default function AddAdminModal({ isOpen, onClose, onApply }: AddAdminModa
             <X className="h-5 w-5" />
           </button>
         </div>
+
         <div className="max-h-[350px] overflow-y-auto px-6 py-4">
           <div className="flex gap-2">
             <input
@@ -125,56 +161,9 @@ export default function AddAdminModal({ isOpen, onClose, onApply }: AddAdminModa
               검색
             </button>
           </div>
-
-          {isLoading ? (
-            <div className="mt-4 text-center text-sm text-gray-500">불러오는 중...</div>
-          ) : isError || !memberData ? (
-            <div className="mt-4 text-center text-sm text-gray-500">검색어를 입력해주세요.</div>
-          ) : memberData.members.length === 0 ? (
-            <div className="mt-4 text-center text-sm text-gray-500">검색 결과가 없습니다.</div>
-          ) : (
-            <table className="mt-4 w-full">
-              <thead>
-                <tr>
-                  <th className="w-12 pb-3"></th>
-                  <th className="pb-3 pl-2 text-left text-sm font-medium text-[#4e5968]">이름</th>
-                  <th className="pb-3 text-left text-sm font-medium text-[#4e5968]">학번</th>
-                </tr>
-              </thead>
-              <tbody>
-                {memberData.members.map((student) => (
-                  <tr key={student.memberId} className="border-b border-[#f2f4f6] last:border-b-0">
-                    <td className="py-3 pr-2">
-                      <div className="flex items-center justify-center">
-                        <div className="relative flex items-center justify-center">
-                          <input
-                            type="checkbox"
-                            id={`student-${student.memberId}`}
-                            checked={selectedIds.has(student.memberId)}
-                            onChange={() => toggleStudent(student.memberId)}
-                            className="peer h-5 w-5 cursor-pointer appearance-none rounded-md border border-[#d1d6db] bg-white checked:border-[#004A98] checked:bg-[#004A98] hover:border-[#004A98] focus:outline-none focus:ring-2 focus:ring-[#004A98] focus:ring-offset-2"
-                          />
-                          {selectedIds.has(student.memberId) && (
-                            <Check className="pointer-events-none absolute h-3 w-3 text-white" />
-                          )}
-                        </div>
-                      </div>
-                    </td>
-                    <td className="py-3 pl-2">
-                      <label
-                        htmlFor={`student-${student.memberId}`}
-                        className="cursor-pointer text-sm text-[#191f28]"
-                      >
-                        {student.name}
-                      </label>
-                    </td>
-                    <td className="py-3 text-left text-sm text-[#6b7684]">{student.studentId}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          )}
+          {renderTable()}
         </div>
+
         <div className="border-t border-[#e5e8eb] px-6 py-4">
           <button
             onClick={handleApply}

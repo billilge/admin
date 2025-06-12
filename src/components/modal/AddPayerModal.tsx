@@ -2,40 +2,23 @@
 
 import { X, Plus, Trash2 } from 'lucide-react';
 import type React from 'react';
-
 import { useState, useEffect } from 'react';
-
-interface Payer {
-  id: number;
-  name: string;
-  studentId: string;
-}
-
-interface AddPayerModalProps {
-  isOpen: boolean;
-  onClose: () => void;
-  onApply: (payers: Payer[]) => void;
-}
+import { AddPayerModalProps } from '@/types/modal';
+import { Payer } from '@/types/payer';
 
 export default function AddPayerModal({ isOpen, onClose, onApply }: AddPayerModalProps) {
   const [studentId, setStudentId] = useState('');
   const [name, setName] = useState('');
   const [payers, setPayers] = useState<Payer[]>([]);
   const [nextId, setNextId] = useState(2);
-  const [inputList, setInputList] = useState([{ name: '', studentId: '' }]);
-
-  useEffect(() => {
-    if (isOpen) {
-      setPayers([]);
-      setName('');
-      setStudentId('');
-      setNextId(1);
-    }
-  }, [isOpen]);
 
   useEffect(() => {
     if (isOpen) {
       document.body.style.overflow = 'hidden';
+      setPayers([]);
+      setName('');
+      setStudentId('');
+      setNextId(1);
     } else {
       document.body.style.overflow = 'unset';
     }

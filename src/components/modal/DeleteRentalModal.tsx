@@ -2,14 +2,7 @@
 
 import { X, AlertTriangle } from 'lucide-react';
 import { useEffect } from 'react';
-
-interface DeleteRentalModalProps {
-  isOpen: boolean;
-  onClose: () => void;
-  onDelete: () => void;
-  rentalInfo: string;
-  isActive: boolean;
-}
+import { DeleteRentalModalProps } from '@/types/modal';
 
 export default function DeleteRentalModal({
   isOpen,

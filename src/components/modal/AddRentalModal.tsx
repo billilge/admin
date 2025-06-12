@@ -1,26 +1,13 @@
 'use client';
 
-import { X, Search, User } from 'lucide-react';
-import { useState, useEffect, useRef } from 'react';
+import { X } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { RentalAddModalProps } from '@/types/modal';
 
 interface Student {
   id: number;
   name: string;
   studentId: string;
-}
-
-interface RentalAddModalProps {
-  isOpen: boolean;
-  onClose: () => void;
-  onApply: (rentalData: {
-    studentName: string;
-    studentId: string;
-    itemName: string;
-    rentalDate: string;
-    staff: string;
-  }) => void;
-  items: { id: number; name: string; itemType: string; quantity: number; rentedCount: number }[];
-  staffs: { name: string; studentId: string }[];
 }
 
 export default function AddRentalModal({
@@ -30,15 +17,23 @@ export default function AddRentalModal({
   items,
   staffs,
 }: RentalAddModalProps) {
+  // 학생 검색 및 선택
   const [selectedStudent, setSelectedStudent] = useState<Student | null>(null);
   const [studentSearchTerm, setStudentSearchTerm] = useState('');
+
+  // 물품 검색 및 선택
   const [selectedItem, setSelectedItem] = useState('');
-  const [rentalDate, setRentalDate] = useState('');
-  const [rentalTime, setRentalTime] = useState('');
-  const [selectedStaff, setSelectedStaff] = useState('');
   const [itemSearchTerm, setItemSearchTerm] = useState('');
+
+  // 근무자 검색 및 선택
+  const [selectedStaff, setSelectedStaff] = useState('');
   const [staffSearchTerm, setStaffSearchTerm] = useState('');
 
+  // 날짜, 시간
+  const [rentalDate, setRentalDate] = useState('');
+  const [rentalTime, setRentalTime] = useState('');
+
+  // 모달이 열릴 때만 날짜/시간 초기화
   useEffect(() => {
     if (!isOpen) return;
     const now = new Date();
@@ -51,6 +46,7 @@ export default function AddRentalModal({
     setRentalTime(`${hh}:${min}`);
   }, [isOpen]);
 
+  // TODO: API 연동 예정
   const students: Student[] = [
     { id: 1, name: '김민수', studentId: '20223456' },
     { id: 2, name: '이지은', studentId: '20223457' },
@@ -60,15 +56,20 @@ export default function AddRentalModal({
     { id: 6, name: '한소희', studentId: '20223461' },
   ];
 
+  // 검색으로 필터링된 학생 데이터
   const filteredStudents = students.filter(
     (s) => s.name.includes(studentSearchTerm) || s.studentId.includes(studentSearchTerm),
   );
+
+  // 검색으로 필터링된 물품 데이터
   const filteredItems = items.filter(
     (item) =>
       item.name.includes(itemSearchTerm) &&
       item.itemType === '대여품' &&
       item.rentedCount < item.quantity,
   );
+
+  // 검색으로 필터링된 관리자 데이터
   const filteredStaffs = staffs.filter(
     (staff) => staff.name.includes(staffSearchTerm) || staff.studentId.includes(staffSearchTerm),
   );
