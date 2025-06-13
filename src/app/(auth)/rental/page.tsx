@@ -13,7 +13,7 @@ import {
   Check,
 } from 'lucide-react';
 import { useState, useRef, useEffect } from 'react';
-import { useUpdateRentalStatus } from '@/api-client';
+import { createRental, useUpdateRentalStatus } from '@/api-client';
 import { getGetAllRentalHistoriesQueryOptions } from '@/api-client';
 import { RentalStatusUpdateRequestRentalStatus } from '@/api-client/model';
 import RentalAddModal from '@/components/modal/AddRentalModal';
@@ -118,21 +118,21 @@ export default function RentalPage() {
     };
   }, [openStatusDropdown]);
 
-  // const handleAddRental = async (rentalData: {
-  //   studentName: string;
-  //   studentId: string;
-  //   itemName: string;
-  //   rentalDate: string;
-  //   staff: string;
-  // }) => {
-  //   try {
-  //     await createRental({ ...rentalData }); // 필요한 형태로 request 변환 필요
-  //     await refetch(); // 최신 데이터로 갱신
-  //     setIsAddModalOpen(false);
-  //   } catch (e) {
-  //     console.error(e);
-  //   }
-  // };
+  const handleAddRental = async (rentalData: {
+    studentName: string;
+    studentId: string;
+    itemName: string;
+    rentalDate: string;
+    staff: string;
+  }) => {
+    try {
+      await createRental({ ...rentalData }); // 필요한 형태로 request 변환 필요
+      await refetch(); // 최신 데이터로 갱신
+      setIsAddModalOpen(false);
+    } catch (e) {
+      console.error(e);
+    }
+  };
 
   const handleDeleteClick = (rental: Rental) => {
     setRentalToDelete(rental);
@@ -304,7 +304,6 @@ export default function RentalPage() {
           </button>
         </div>
       </div>
-
       <div className="overflow-hidden rounded-md border border-[#e5e8eb] bg-white shadow-sm">
         <div className="overflow-x-auto">
           <table className="w-full border-collapse">
@@ -325,9 +324,6 @@ export default function RentalPage() {
                 <th className="whitespace-nowrap px-6 py-3 text-left text-sm font-medium text-[#4e5968]">
                   반납일
                 </th>
-                {/*<th className="whitespace-nowrap px-6 py-3 text-left text-sm font-medium text-[#4e5968]">*/}
-                {/*  근무자*/}
-                {/*</th>*/}
                 <th className="whitespace-nowrap px-6 py-3 text-left text-sm font-medium text-[#4e5968]">
                   상태
                 </th>
@@ -408,8 +404,7 @@ export default function RentalPage() {
           </table>
         </div>
       </div>
-
-      {/* Status Dropdown Portal */}
+      {/*TODO: 드롭다운 길이에 따라 표 넓이 바뀌는 것 수정 필요*/}
       {openStatusDropdown !== null && (
         <div
           className="fixed z-50 w-32 rounded-md border border-[#e5e8eb] bg-white py-1 shadow-lg"
@@ -439,7 +434,6 @@ export default function RentalPage() {
           ))}
         </div>
       )}
-
       <div className="flex items-center justify-between">
         <div></div>
         <div className="flex items-center gap-2">
@@ -465,7 +459,6 @@ export default function RentalPage() {
         </div>
         <div></div>
       </div>
-
       {/*<RentalAddModal*/}
       {/*  isOpen={isAddModalOpen}*/}
       {/*  onClose={() => setIsAddModalOpen(false)}*/}

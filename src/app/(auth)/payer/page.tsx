@@ -16,17 +16,11 @@ import { useGetAllPayers } from '@/api-client';
 import { useAddPayers } from '@/api-client';
 import { createPayerExcel } from '@/api-client';
 import AddPayerModal from '@/components/modal/AddPayerModal';
-
-interface Payer {
-  id: number;
-  name: string;
-  studentId: string;
-}
+import { Payer } from '@/types/payer';
 
 export default function PayerPage() {
   const [currentPage, setCurrentPage] = useState(1);
   const [isModalOpen, setIsModalOpen] = useState(false);
-
   const [searchInput, setSearchInput] = useState('');
   const [searchKeyword, setSearchKeyword] = useState('');
 

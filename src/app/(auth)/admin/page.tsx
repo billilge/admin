@@ -8,13 +8,7 @@ import { getGetAdminListQueryKey, useGetAdminList } from '@/api-client';
 import { addAdmins } from '@/api-client';
 import { AdminRequest } from '@/api-client/model';
 import AddAdminModal from '@/components/modal/AddAdminModal';
-
-interface Student {
-  id: number;
-  name: string;
-  studentId: string;
-  selected: boolean;
-}
+import { Student } from '@/types/student';
 
 export default function AdminPage() {
   const [currentPage, setCurrentPage] = useState(1);
