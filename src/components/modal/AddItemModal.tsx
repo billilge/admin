@@ -8,15 +8,6 @@ import { useAddItem } from '@/api-client';
 import { updateItem } from '@/api-client'; // 추가
 import { ItemRequest, ItemRequestType } from '@/api-client/model';
 
-interface ItemData {
-  id?: number;
-  name: string;
-  isConsumable: boolean;
-  quantity: number;
-  imageFile: File | null;
-  imageUrl?: string;
-}
-
 interface AddItemModalProps {
   isOpen: boolean;
   onClose: () => void;

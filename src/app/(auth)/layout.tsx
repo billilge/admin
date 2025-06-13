@@ -4,12 +4,12 @@ import Link from 'next/link';
 import type { ReactNode } from 'react';
 import useAuthRedirect from '@/hooks/useAuthRedirect';
 
-interface DesktopLayoutProps {
+type AuthLayoutProps = {
   children: ReactNode;
-}
+};
 
-export default function DesktopLayout({ children }: DesktopLayoutProps) {
-  useAuthRedirect();
+export default function AuthLayout({ children }: AuthLayoutProps) {
+  useAuthRedirect(); // 진입 시 토큰 유효성 판단 후 로그인 페이지 혹은 메인 페이지로 이동
   return (
     <div className="min-h-screen bg-[#f9fbfc]">
       <header className="sticky top-0 z-10 border-b border-[#e5e8eb] bg-white shadow-sm">

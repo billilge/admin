@@ -17,6 +17,7 @@ export * from './adminMemberDetail';
 export * from './adminRentalHistoryDetail';
 export * from './adminRentalHistoryDetailRentalStatus';
 export * from './adminRentalHistoryFindAllResponse';
+export * from './adminRentalHistoryRequest';
 export * from './adminRequest';
 export * from './dashboardResponse';
 export * from './errorResponse';

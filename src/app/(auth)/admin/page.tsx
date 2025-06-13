@@ -1,7 +1,6 @@
 'use client';
 
-import { useQueryClient } from '@tanstack/react-query';
-import { useMutation } from '@tanstack/react-query';
+import { useQueryClient, useMutation } from '@tanstack/react-query';
 import { Search, Plus, ChevronLeft, ChevronRight } from 'lucide-react';
 import { useState } from 'react';
 import toast from 'react-hot-toast';
@@ -9,20 +8,32 @@ import { getGetAdminListQueryKey, useGetAdminList } from '@/api-client';
 import { addAdmins } from '@/api-client';
 import { AdminRequest } from '@/api-client/model';
 import AddAdminModal from '@/components/modal/AddAdminModal';
-
-interface Student {
-  id: number;
-  name: string;
-  studentId: string;
-  selected: boolean;
-}
+import { Student } from '@/types/student';
 
 export default function AdminPage() {
   const [currentPage, setCurrentPage] = useState(1);
-
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   const queryClient = useQueryClient();
+
+  const {
+    data: adminListData,
+    isLoading,
+    isError,
+  } = useGetAdminList(
+    {
+      pageNo: currentPage - 1,
+      size: 10,
+      criteria: 'name',
+    },
+    {
+      query: {
+        staleTime: 1000 * 60 * 3, // 3분 동안 캐시된 데이터를 사용 -> 자동 재요청을 방지함
+      },
+    },
+  );
+
+  const totalPages = adminListData?.totalPage ?? 1;
 
   const addAdminsMutation = useMutation({
     mutationFn: (data: AdminRequest) => addAdmins(data),
@@ -37,31 +48,12 @@ export default function AdminPage() {
         }),
       });
 
-      setIsModalOpen(false);
+      // setIsModalOpen(false);
     },
     onError: () => {
       toast.error('관리자 추가에 실패했습니다.');
     },
   });
-
-  const {
-    data: adminListData,
-    isLoading,
-    isError,
-  } = useGetAdminList(
-    {
-      pageNo: currentPage - 1,
-      size: 10,
-      criteria: 'name',
-    },
-    {
-      query: {
-        staleTime: 1000 * 60 * 3,
-      },
-    },
-  );
-
-  const totalPages = adminListData?.totalPage ?? 1;
 
   const handleAddAdmins = (selectedStudents: Student[]) => {
     const requestData: AdminRequest = {
@@ -89,7 +81,7 @@ export default function AdminPage() {
           </div>
           <button
             onClick={() => setIsModalOpen(true)}
-            className="flex h-10 shrink-0 items-center gap-1 rounded-md bg-[#004A98] px-4 text-sm font-medium text-white hover:bg-[#003a7a] focus:outline-none focus:ring-2 focus:ring-[#004A98] focus:ring-offset-2 cursor-pointe"
+            className="flex h-10 shrink-0 items-center gap-1 rounded-md bg-[#004A98] px-4 text-sm font-medium text-white hover:bg-[#003a7a] focus:outline-none focus:ring-2 focus:ring-[#004A98] focus:ring-offset-2 cursor-pointer"
           >
             <Plus className="h-4 w-4" />
             <span className="hidden sm:inline">새로운 관리자 추가하기</span>

@@ -5,15 +5,7 @@ import { useState } from 'react';
 import { useDeleteItem, useGetAllAdminItems } from '@/api-client';
 import ItemAddModal from '@/components/modal/AddItemModal';
 import DeleteItemModal from '@/components/modal/DeleteItemModal';
-
-interface Item {
-  itemId: number;
-  itemName: string;
-  itemType: 'RENTAL' | 'CONSUMPTION';
-  count: number;
-  renterCount: number;
-  imageUrl?: string;
-}
+import { Item } from '@/types/item';
 
 export default function ItemPage() {
   const [currentPage, setCurrentPage] = useState(1);
@@ -25,10 +17,8 @@ export default function ItemPage() {
   const [searchKeyword, setSearchKeyword] = useState('');
 
   const { data, isLoading, refetch } = useGetAllAdminItems({ pageNo: currentPage });
-
-  const totalPages = (data?.totalPage ?? 1) - 1;
-
   const items = data?.items ?? [];
+  const totalPages = (data?.totalPage ?? 1) - 1;
 
   const filteredItems = items.filter((item) =>
     item.itemName.toLowerCase().includes(searchKeyword.toLowerCase()),

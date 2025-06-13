@@ -1,12 +1,6 @@
 'use client';
 
-interface DeleteItemModalProps {
-  isOpen: boolean;
-  onClose: () => void;
-  onDelete: () => void;
-  itemName: string;
-  hasRentedItems: boolean;
-}
+import { DeleteItemModalProps } from '@/types/modal';
 
 export default function DeleteItemModal({
   isOpen,
