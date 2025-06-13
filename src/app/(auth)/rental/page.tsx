@@ -18,18 +18,7 @@ import { getGetAllRentalHistoriesQueryOptions } from '@/api-client';
 import { RentalStatusUpdateRequestRentalStatus } from '@/api-client/model';
 import RentalAddModal from '@/components/modal/AddRentalModal';
 import RentalDeleteModal from '@/components/modal/DeleteRentalModal';
-
-interface Rental {
-  rentalHistoryId: number;
-  member: {
-    name: string;
-    studentId: string;
-  };
-  itemName: string;
-  rentAt: string;
-  returnedAt?: string | null | undefined; // TODO : 이래도 되나
-  rentalStatus: RentalStatusUpdateRequestRentalStatus;
-}
+import { Rental } from '@/types/rental';
 
 type FilterType = 'none' | 'item' | 'rentalDate' | 'returnDate' | 'status';
 
