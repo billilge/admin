@@ -28,7 +28,7 @@ export default function AdminPage() {
     },
     {
       query: {
-        staleTime: 1000 * 60 * 3, // 3분 동안 캐시된 데이터를 사용 -> 자동 재요청을 방지함
+        staleTime: 1000 * 60 * 3,
       },
     },
   );
