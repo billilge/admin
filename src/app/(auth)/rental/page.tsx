@@ -367,7 +367,7 @@ export default function RentalPage() {
                   {/*    <span>{rental.staff}</span>*/}
                   {/*  </div>*/}
                   {/*</td>*/}
-                  <td className="whitespace-nowrap px-6 py-4 text-sm">
+                  <td className="whitespace-nowrap px-6 py-4 text-sm ">
                     <div
                       className="relative"
                       ref={(el) => {
@@ -379,7 +379,7 @@ export default function RentalPage() {
                           statusButtonRefs.current[rental.rentalHistoryId] = el;
                         }}
                         onClick={() => handleStatusClick(rental.rentalHistoryId)}
-                        className={`inline-flex items-center gap-1 rounded-md px-2 py-1 text-xs font-medium ${getStatusColor(
+                        className={`inline-flex items-center gap-1 rounded-md px-2 py-1 text-xs font-medium cursor-pointer ${getStatusColor(
                           rental.rentalStatus,
                         )}`}
                       >
@@ -417,7 +417,7 @@ export default function RentalPage() {
           {statusOptions.map((status) => (
             <button
               key={status.value}
-              className={`flex w-full items-center px-3 py-2 text-left text-xs ${
+              className={`flex w-full items-center px-3 py-2 text-left text-xs cursor-pointer ${
                 rentals.find((r) => r.rentalHistoryId === openStatusDropdown)?.rentalStatus ===
                 status.value
                   ? 'bg-[#f9fbfc] text-[#004A98] font-medium'

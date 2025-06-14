@@ -16,7 +16,7 @@ export default function AuthLayout({ children }: AuthLayoutProps) {
         <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 md:px-6">
           <div className="flex items-center gap-2">
             <Link
-              href="/main"
+              href="/"
               className="flex items-center gap-2 rounded-md px-3 py-2 text-lg font-bold text-[#191f28] hover:bg-[#f2f4f6]"
             >
               <span className="text-[#004A98]">빌릴게</span>

@@ -59,7 +59,7 @@ export default function LoginPage() {
         })
         .then((data) => {
           localStorage.setItem('token', data.accessToken);
-          router.push('/main');
+          router.push('/');
         }),
       {
         loading: '로그인 중...',
