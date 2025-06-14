@@ -1,90 +1,93 @@
 'use client';
 
+import { useQueryClient } from '@tanstack/react-query';
 import { X } from 'lucide-react';
-import { useState, useEffect } from 'react';
+import { useEffect, useState } from 'react';
+import toast from 'react-hot-toast';
+import {
+  useAddRentalHistory,
+  useGetAllAdminItems,
+  useGetAdminList,
+  useGetAllMembers,
+  getGetAllRentalHistoriesQueryOptions,
+} from '@/api-client';
 import { RentalAddModalProps } from '@/types/modal';
 
-interface Student {
-  id: number;
-  name: string;
-  studentId: string;
-}
+export default function AddRentalModal({ isOpen, onClose, onApply }: RentalAddModalProps) {
+  const queryClient = useQueryClient();
+  const { queryKey } = getGetAllRentalHistoriesQueryOptions();
 
-export default function AddRentalModal({
-  isOpen,
-  onClose,
-  onApply,
-  items,
-  staffs,
-}: RentalAddModalProps) {
-  // 학생 검색 및 선택
-  const [selectedStudent, setSelectedStudent] = useState<Student | null>(null);
+  const [selectedStudent, setSelectedStudent] = useState<any | null>(null);
   const [studentSearchTerm, setStudentSearchTerm] = useState('');
-
-  // 물품 검색 및 선택
-  const [selectedItem, setSelectedItem] = useState('');
+  const [selectedItem, setSelectedItem] = useState<any | null>(null);
   const [itemSearchTerm, setItemSearchTerm] = useState('');
-
-  // 근무자 검색 및 선택
-  const [selectedStaff, setSelectedStaff] = useState('');
+  const [selectedStaff, setSelectedStaff] = useState<any | null>(null);
   const [staffSearchTerm, setStaffSearchTerm] = useState('');
-
-  // 날짜, 시간
   const [rentalDate, setRentalDate] = useState('');
   const [rentalTime, setRentalTime] = useState('');
+  const [studentFocused, setStudentFocused] = useState(false);
+  const [itemFocused, setItemFocused] = useState(false);
+  const [staffFocused, setStaffFocused] = useState(false);
 
-  // 모달이 열릴 때만 날짜/시간 초기화
   useEffect(() => {
-    if (!isOpen) return;
-    const now = new Date();
-    const yyyy = now.getFullYear();
-    const mm = String(now.getMonth() + 1).padStart(2, '0');
-    const dd = String(now.getDate()).padStart(2, '0');
-    const hh = String(now.getHours()).padStart(2, '0');
-    const min = String(now.getMinutes()).padStart(2, '0');
-    setRentalDate(`${yyyy}-${mm}-${dd}`);
-    setRentalTime(`${hh}:${min}`);
+    if (isOpen) {
+      const now = new Date();
+      setRentalDate(now.toISOString().split('T')[0]);
+      setRentalTime(now.toTimeString().slice(0, 5));
+    }
   }, [isOpen]);
 
-  // TODO: API 연동 예정
-  const students: Student[] = [
-    { id: 1, name: '김민수', studentId: '20223456' },
-    { id: 2, name: '이지은', studentId: '20223457' },
-    { id: 3, name: '박준호', studentId: '20223458' },
-    { id: 4, name: '최유진', studentId: '20223459' },
-    { id: 5, name: '정승우', studentId: '20223460' },
-    { id: 6, name: '한소희', studentId: '20223461' },
-  ];
+  const { data: studentsData } = useGetAllMembers({ search: studentSearchTerm });
+  const { data: itemData } = useGetAllAdminItems({ search: itemSearchTerm });
+  const { data: staffsData } = useGetAdminList({ search: staffSearchTerm });
 
-  // 검색으로 필터링된 학생 데이터
-  const filteredStudents = students.filter(
-    (s) => s.name.includes(studentSearchTerm) || s.studentId.includes(studentSearchTerm),
-  );
+  const students = studentsData?.members ?? [];
+  const items = itemData?.items ?? [];
+  const staffs = staffsData?.admins ?? [];
 
-  // 검색으로 필터링된 물품 데이터
   const filteredItems = items.filter(
     (item) =>
-      item.name.includes(itemSearchTerm) &&
-      item.itemType === '대여품' &&
-      item.rentedCount < item.quantity,
+      item.itemName.includes(itemSearchTerm) &&
+      item.itemType === 'RENTAL' &&
+      item.renterCount < item.count,
   );
 
-  // 검색으로 필터링된 관리자 데이터
   const filteredStaffs = staffs.filter(
     (staff) => staff.name.includes(staffSearchTerm) || staff.studentId.includes(staffSearchTerm),
   );
 
+  const { mutate: addRentalHistory } = useAddRentalHistory({
+    mutation: {
+      onSuccess: () => {
+        queryClient.invalidateQueries({ queryKey });
+        // onApply?.();
+        onClose();
+        toast.success('대여 기록이 추가되었습니다.');
+      },
+      onError: (error: any) => {
+        onClose();
+        const message =
+          error?.response?.data?.message || error?.message || '대여 기록 추가에 실패했습니다.';
+
+        setTimeout(() => {
+          toast.error(message);
+        }, 200);
+      },
+    },
+  });
+
   const handleApply = () => {
-    if (selectedStudent && selectedItem && rentalDate && rentalTime && selectedStaff) {
-      onApply({
-        studentName: selectedStudent.name,
-        studentId: selectedStudent.studentId,
-        itemName: selectedItem,
-        rentalDate: `${rentalDate} ${rentalTime}`,
-        staff: selectedStaff,
-      });
-      onClose();
-    }
+    if (!selectedStudent || !selectedItem || !selectedStaff || !rentalDate || !rentalTime) return;
+
+    const [hour, minute] = rentalTime.split(':').map(Number);
+    addRentalHistory({
+      data: {
+        memberId: selectedStudent.memberId,
+        itemId: selectedItem.itemId,
+        count: 1,
+        rentalTime: { hour, minute },
+      },
+    });
   };
 
   if (!isOpen) return null;
@@ -92,6 +95,7 @@ export default function AddRentalModal({
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
       <div className="w-full max-w-md rounded-lg bg-white shadow-md">
+        {/* Header */}
         <div className="flex items-center justify-between border-b px-6 py-4">
           <h2 className="text-xl font-bold">대여 기록 추가하기</h2>
           <button onClick={onClose} className="p-1 text-gray-500 hover:text-gray-800">
@@ -99,7 +103,9 @@ export default function AddRentalModal({
           </button>
         </div>
 
+        {/* Form */}
         <div className="px-6 py-4 space-y-4 max-h-[70vh] overflow-y-auto">
+          {/* 학생 선택 */}
           <div>
             <label className="block text-sm font-medium">학생 검색</label>
             <input
@@ -110,22 +116,28 @@ export default function AddRentalModal({
               placeholder="이름 또는 학번"
             />
             <div className="mt-1 border rounded-md max-h-32 overflow-y-auto">
-              {filteredStudents.map((student) => (
-                <div
-                  key={student.id}
-                  className="px-3 py-2 cursor-pointer hover:bg-gray-100"
-                  onClick={() => {
-                    setSelectedStudent(student);
-                    setStudentSearchTerm(`${student.name} (${student.studentId})`);
-                  }}
-                >
-                  <div className="text-sm font-medium">{student.name}</div>
-                  <div className="text-xs text-gray-500">{student.studentId}</div>
+              {(studentFocused || studentSearchTerm) && (
+                <div className="mt-1 border rounded-md max-h-32 overflow-y-auto">
+                  {students.map((student) => (
+                    <div
+                      key={student.memberId}
+                      className="px-3 py-2 cursor-pointer hover:bg-gray-100"
+                      onClick={() => {
+                        setSelectedStudent(student);
+                        setStudentSearchTerm(`${student.name} (${student.studentId})`);
+                        setStudentFocused(false);
+                      }}
+                    >
+                      <div className="text-sm font-medium">{student.name}</div>
+                      <div className="text-xs text-gray-500">{student.studentId}</div>
+                    </div>
+                  ))}
                 </div>
-              ))}
+              )}
             </div>
           </div>
 
+          {/* 물품 선택 */}
           <div>
             <label className="block text-sm font-medium">대여 물품</label>
             <input
@@ -135,25 +147,28 @@ export default function AddRentalModal({
               className="mt-1 w-full rounded-md border px-3 py-2"
               placeholder="물품명"
             />
-            <div className="mt-1 border rounded-md max-h-32 overflow-y-auto">
-              {filteredItems.map((item) => (
-                <div
-                  key={item.id}
-                  className="px-3 py-2 cursor-pointer hover:bg-gray-100"
-                  onClick={() => {
-                    setSelectedItem(item.name);
-                    setItemSearchTerm(item.name);
-                  }}
-                >
-                  <div className="text-sm font-medium">{item.name}</div>
-                  <div className="text-xs text-gray-500">
-                    남은 수량: {item.quantity - item.rentedCount}/{item.quantity}
+            {(itemFocused || itemSearchTerm) && (
+              <div className="mt-1 border rounded-md max-h-32 overflow-y-auto">
+                {filteredItems.map((item) => (
+                  <div
+                    key={item.itemId}
+                    className="px-3 py-2 cursor-pointer hover:bg-gray-100"
+                    onClick={() => {
+                      setSelectedItem(item);
+                      setItemSearchTerm(item.itemName);
+                    }}
+                  >
+                    <div className="text-sm font-medium">{item.itemName}</div>
+                    <div className="text-xs text-gray-500">
+                      남은 수량: {item.count - item.renterCount}/{item.count}
+                    </div>
                   </div>
-                </div>
-              ))}
-            </div>
+                ))}
+              </div>
+            )}
           </div>
 
+          {/* 날짜 및 시간 */}
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-medium">대여 날짜</label>
@@ -175,6 +190,7 @@ export default function AddRentalModal({
             </div>
           </div>
 
+          {/* 근무자 선택 */}
           <div>
             <label className="block text-sm font-medium">근무자</label>
             <input
@@ -184,31 +200,34 @@ export default function AddRentalModal({
               className="mt-1 w-full rounded-md border px-3 py-2"
               placeholder="이름 또는 학번"
             />
-            <div className="mt-1 border rounded-md max-h-32 overflow-y-auto">
-              {filteredStaffs.map((staff, i) => (
-                <div
-                  key={i}
-                  className="px-3 py-2 cursor-pointer hover:bg-gray-100"
-                  onClick={() => {
-                    setSelectedStaff(staff.name);
-                    setStaffSearchTerm(staff.name);
-                  }}
-                >
-                  <div className="text-sm font-medium">{staff.name}</div>
-                  <div className="text-xs text-gray-500">{staff.studentId}</div>
-                </div>
-              ))}
-            </div>
+            {(staffFocused || staffSearchTerm) && (
+              <div className="mt-1 border rounded-md max-h-32 overflow-y-auto">
+                {filteredStaffs.map((staff) => (
+                  <div
+                    key={staff.memberId}
+                    className="px-3 py-2 cursor-pointer hover:bg-gray-100"
+                    onClick={() => {
+                      setSelectedStaff(staff);
+                      setStaffSearchTerm(`${staff.name} (${staff.studentId})`);
+                    }}
+                  >
+                    <div className="text-sm font-medium">{staff.name}</div>
+                    <div className="text-xs text-gray-500">{staff.studentId}</div>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         </div>
 
+        {/* Footer */}
         <div className="px-6 py-4 border-t">
           <button
             onClick={handleApply}
             disabled={
-              !selectedStudent || !selectedItem || !rentalDate || !rentalTime || !selectedStaff
+              !selectedStudent || !selectedItem || !selectedStaff || !rentalDate || !rentalTime
             }
-            className="w-full rounded-md bg-[#004A98] py-3 text-white font-medium disabled:opacity-50"
+            className="w-full rounded-md bg-[#004A98] py-3 text-white font-medium disabled:opacity-50 cursor-pointer"
           >
             대여 기록 추가
           </button>

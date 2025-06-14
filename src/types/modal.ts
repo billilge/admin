@@ -1,3 +1,4 @@
+import { RentalHistoryRequest } from '@/api-client/model';
 import { Payer } from '@/types/payer';
 import { Student } from '@/types/student';
 
@@ -20,15 +21,9 @@ export type DeleteItemModalProps = {
 export type RentalAddModalProps = {
   isOpen: boolean;
   onClose: () => void;
-  onApply: (rentalData: {
-    studentName: string;
-    studentId: string;
-    itemName: string;
-    rentalDate: string;
-    staff: string;
-  }) => void;
-  items: { id: number; name: string; itemType: string; quantity: number; rentedCount: number }[];
-  staffs: { name: string; studentId: string }[];
+  onApply?: (rentalData: RentalHistoryRequest) => void; // ✅ 인자 받도록 정의
+  // items: { id: number; name: string; itemType: string; quantity: number; rentedCount: number }[];
+  // staffs: { name: string; studentId: string }[];
 };
 
 export type AddPayerModalProps = {

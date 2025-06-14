@@ -1,6 +1,7 @@
 'use client';
 
 import { useQuery } from '@tanstack/react-query';
+import { useQueryClient } from '@tanstack/react-query';
 import {
   Search,
   ChevronLeft,
@@ -13,9 +14,11 @@ import {
   Check,
 } from 'lucide-react';
 import { useState, useRef, useEffect } from 'react';
+import toast from 'react-hot-toast';
 import { createRental, useUpdateRentalStatus } from '@/api-client';
 import { getGetAllRentalHistoriesQueryOptions } from '@/api-client';
-import { RentalStatusUpdateRequestRentalStatus } from '@/api-client/model';
+import { useDeleteRentalHistory } from '@/api-client';
+import { RentalHistoryRequest, RentalStatusUpdateRequestRentalStatus } from '@/api-client/model';
 import RentalAddModal from '@/components/modal/AddRentalModal';
 import RentalDeleteModal from '@/components/modal/DeleteRentalModal';
 import { Rental } from '@/types/rental';
@@ -51,6 +54,9 @@ export default function RentalPage() {
   const totalPages = data?.totalPage ?? 1;
 
   const rentals = data?.rentalHistories ?? [];
+
+  const queryClient = useQueryClient();
+  const { mutateAsync: deleteRental } = useDeleteRentalHistory();
 
   const rentalStatusLabelMap: Record<RentalStatusUpdateRequestRentalStatus, string> = {
     PENDING: '승인 대기 중',
@@ -107,16 +113,10 @@ export default function RentalPage() {
     };
   }, [openStatusDropdown]);
 
-  const handleAddRental = async (rentalData: {
-    studentName: string;
-    studentId: string;
-    itemName: string;
-    rentalDate: string;
-    staff: string;
-  }) => {
+  const handleAddRental = async (rentalData: RentalHistoryRequest) => {
     try {
-      await createRental({ ...rentalData }); // 필요한 형태로 request 변환 필요
-      await refetch(); // 최신 데이터로 갱신
+      await createRental(rentalData);
+      await refetch();
       setIsAddModalOpen(false);
     } catch (e) {
       console.error(e);
@@ -128,8 +128,17 @@ export default function RentalPage() {
     setIsDeleteModalOpen(true);
   };
 
-  const handleDeleteRental = () => {
-    if (rentalToDelete) {
+  const handleDeleteRental = async () => {
+    if (!rentalToDelete) return;
+
+    try {
+      await deleteRental({ rentalHistoryId: rentalToDelete.rentalHistoryId });
+      await queryClient.invalidateQueries(getGetAllRentalHistoriesQueryOptions()); // 리스트 갱신
+      toast.success('삭제되었습니다.');
+    } catch (e) {
+      console.error(e);
+      toast.error('삭제에 실패했습니다.');
+    } finally {
       setIsDeleteModalOpen(false);
       setRentalToDelete(null);
     }
@@ -285,7 +294,7 @@ export default function RentalPage() {
           </div>
           <button
             onClick={() => setIsAddModalOpen(true)}
-            className="flex h-10 shrink-0 items-center gap-1 rounded-md bg-[#004A98] px-4 text-sm font-medium text-white hover:bg-[#003a7a] focus:outline-none focus:ring-2 focus:ring-[#004A98] focus:ring-offset-2"
+            className="flex h-10 shrink-0 items-center gap-1 rounded-md bg-[#004A98] px-4 text-sm font-medium text-white hover:bg-[#003a7a] focus:outline-none focus:ring-2 focus:ring-[#004A98] focus:ring-offset-2 cursor-pointer"
           >
             <Plus className="h-4 w-4" />
             <span className="hidden sm:inline">대여 추가하기</span>
@@ -358,7 +367,7 @@ export default function RentalPage() {
                   {/*    <span>{rental.staff}</span>*/}
                   {/*  </div>*/}
                   {/*</td>*/}
-                  <td className="whitespace-nowrap px-6 py-4 text-sm">
+                  <td className="whitespace-nowrap px-6 py-4 text-sm ">
                     <div
                       className="relative"
                       ref={(el) => {
@@ -370,7 +379,7 @@ export default function RentalPage() {
                           statusButtonRefs.current[rental.rentalHistoryId] = el;
                         }}
                         onClick={() => handleStatusClick(rental.rentalHistoryId)}
-                        className={`inline-flex items-center gap-1 rounded-md px-2 py-1 text-xs font-medium ${getStatusColor(
+                        className={`inline-flex items-center gap-1 rounded-md px-2 py-1 text-xs font-medium cursor-pointer ${getStatusColor(
                           rental.rentalStatus,
                         )}`}
                       >
@@ -382,7 +391,7 @@ export default function RentalPage() {
                   <td className="whitespace-nowrap px-6 py-4 text-sm">
                     <button
                       onClick={() => handleDeleteClick(rental)}
-                      className="rounded-md p-1 text-[#8b95a1] hover:bg-[#fff0f1] hover:text-[#e93c3c]"
+                      className="rounded-md p-1 text-[#8b95a1] hover:bg-[#fff0f1] hover:text-[#e93c3c] cursor-pointer"
                     >
                       <Trash2 className="h-4 w-4" />
                     </button>
@@ -408,7 +417,7 @@ export default function RentalPage() {
           {statusOptions.map((status) => (
             <button
               key={status.value}
-              className={`flex w-full items-center px-3 py-2 text-left text-xs ${
+              className={`flex w-full items-center px-3 py-2 text-left text-xs cursor-pointer ${
                 rentals.find((r) => r.rentalHistoryId === openStatusDropdown)?.rentalStatus ===
                 status.value
                   ? 'bg-[#f9fbfc] text-[#004A98] font-medium'
@@ -448,13 +457,7 @@ export default function RentalPage() {
         </div>
         <div></div>
       </div>
-      {/*<RentalAddModal*/}
-      {/*  isOpen={isAddModalOpen}*/}
-      {/*  onClose={() => setIsAddModalOpen(false)}*/}
-      {/*  onApply={handleAddRental}*/}
-      {/*  items={items}*/}
-      {/*  staffs={staffs}*/}
-      {/*/>*/}
+      <RentalAddModal isOpen={isAddModalOpen} onClose={() => setIsAddModalOpen(false)} />
       {rentalToDelete && (
         <RentalDeleteModal
           isOpen={isDeleteModalOpen}

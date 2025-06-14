@@ -2,6 +2,7 @@
 
 import { Search, Plus, ChevronLeft, ChevronRight, Edit, Trash2 } from 'lucide-react';
 import { useState } from 'react';
+import toast from 'react-hot-toast';
 import { useDeleteItem, useGetAllAdminItems } from '@/api-client';
 import ItemAddModal from '@/components/modal/AddItemModal';
 import DeleteItemModal from '@/components/modal/DeleteItemModal';
@@ -50,8 +51,9 @@ export default function ItemPage() {
         await refetch(); // 최신 데이터 다시 불러오기
         setIsDeleteModalOpen(false);
         setItemToDelete(null);
+        toast.success('물품이 성공적으로 삭제되었습니다.');
       } catch (error) {
-        console.error('삭제 실패:', error);
+        toast.error('물품 처리 중 오류가 발생했습니다.');
       }
     }
   };

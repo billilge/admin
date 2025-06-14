@@ -59,7 +59,7 @@ export default function LoginPage() {
         })
         .then((data) => {
           localStorage.setItem('token', data.accessToken);
-          router.push('/main');
+          router.push('/');
         }),
       {
         loading: '로그인 중...',
@@ -127,7 +127,7 @@ export default function LoginPage() {
 
             <Button
               type="submit"
-              className="flex h-12 w-full items-center justify-center rounded-md bg-[#004A98] text-base font-medium text-white hover:bg-[#003a7a] focus:outline-none focus:ring-2 focus:ring-[#004A98] focus:ring-offset-2"
+              className="flex h-12 w-full items-center justify-center rounded-md bg-[#004A98] text-base font-medium text-white hover:bg-[#003a7a] focus:outline-none focus:ring-2 focus:ring-[#004A98] focus:ring-offset-2 cursor-pointer"
             >
               로그인
               <ArrowRight size={18} className="ml-2" />
