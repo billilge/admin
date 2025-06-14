@@ -15,7 +15,7 @@ import {
 import { useState, useRef, useEffect } from 'react';
 import { createRental, useUpdateRentalStatus } from '@/api-client';
 import { getGetAllRentalHistoriesQueryOptions } from '@/api-client';
-import { RentalStatusUpdateRequestRentalStatus } from '@/api-client/model';
+import { RentalHistoryRequest, RentalStatusUpdateRequestRentalStatus } from '@/api-client/model';
 import RentalAddModal from '@/components/modal/AddRentalModal';
 import RentalDeleteModal from '@/components/modal/DeleteRentalModal';
 import { Rental } from '@/types/rental';
@@ -107,16 +107,10 @@ export default function RentalPage() {
     };
   }, [openStatusDropdown]);
 
-  const handleAddRental = async (rentalData: {
-    studentName: string;
-    studentId: string;
-    itemName: string;
-    rentalDate: string;
-    staff: string;
-  }) => {
+  const handleAddRental = async (rentalData: RentalHistoryRequest) => {
     try {
-      await createRental({ ...rentalData }); // 필요한 형태로 request 변환 필요
-      await refetch(); // 최신 데이터로 갱신
+      await createRental(rentalData);
+      await refetch();
       setIsAddModalOpen(false);
     } catch (e) {
       console.error(e);
@@ -285,7 +279,7 @@ export default function RentalPage() {
           </div>
           <button
             onClick={() => setIsAddModalOpen(true)}
-            className="flex h-10 shrink-0 items-center gap-1 rounded-md bg-[#004A98] px-4 text-sm font-medium text-white hover:bg-[#003a7a] focus:outline-none focus:ring-2 focus:ring-[#004A98] focus:ring-offset-2"
+            className="flex h-10 shrink-0 items-center gap-1 rounded-md bg-[#004A98] px-4 text-sm font-medium text-white hover:bg-[#003a7a] focus:outline-none focus:ring-2 focus:ring-[#004A98] focus:ring-offset-2 cursor-pointer"
           >
             <Plus className="h-4 w-4" />
             <span className="hidden sm:inline">대여 추가하기</span>
@@ -448,13 +442,7 @@ export default function RentalPage() {
         </div>
         <div></div>
       </div>
-      {/*<RentalAddModal*/}
-      {/*  isOpen={isAddModalOpen}*/}
-      {/*  onClose={() => setIsAddModalOpen(false)}*/}
-      {/*  onApply={handleAddRental}*/}
-      {/*  items={items}*/}
-      {/*  staffs={staffs}*/}
-      {/*/>*/}
+      <RentalAddModal isOpen={isAddModalOpen} onClose={() => setIsAddModalOpen(false)} />
       {rentalToDelete && (
         <RentalDeleteModal
           isOpen={isDeleteModalOpen}
