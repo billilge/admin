@@ -1,6 +1,7 @@
 'use client';
 
 import { useQuery } from '@tanstack/react-query';
+import { useQueryClient } from '@tanstack/react-query';
 import {
   Search,
   ChevronLeft,
@@ -13,8 +14,10 @@ import {
   Check,
 } from 'lucide-react';
 import { useState, useRef, useEffect } from 'react';
+import toast from 'react-hot-toast';
 import { createRental, useUpdateRentalStatus } from '@/api-client';
 import { getGetAllRentalHistoriesQueryOptions } from '@/api-client';
+import { useDeleteRentalHistory } from '@/api-client';
 import { RentalHistoryRequest, RentalStatusUpdateRequestRentalStatus } from '@/api-client/model';
 import RentalAddModal from '@/components/modal/AddRentalModal';
 import RentalDeleteModal from '@/components/modal/DeleteRentalModal';
@@ -51,6 +54,9 @@ export default function RentalPage() {
   const totalPages = data?.totalPage ?? 1;
 
   const rentals = data?.rentalHistories ?? [];
+
+  const queryClient = useQueryClient();
+  const { mutateAsync: deleteRental } = useDeleteRentalHistory();
 
   const rentalStatusLabelMap: Record<RentalStatusUpdateRequestRentalStatus, string> = {
     PENDING: '승인 대기 중',
@@ -122,8 +128,17 @@ export default function RentalPage() {
     setIsDeleteModalOpen(true);
   };
 
-  const handleDeleteRental = () => {
-    if (rentalToDelete) {
+  const handleDeleteRental = async () => {
+    if (!rentalToDelete) return;
+
+    try {
+      await deleteRental({ rentalHistoryId: rentalToDelete.rentalHistoryId });
+      await queryClient.invalidateQueries(getGetAllRentalHistoriesQueryOptions()); // 리스트 갱신
+      toast.success('삭제되었습니다.');
+    } catch (e) {
+      console.error(e);
+      toast.error('삭제에 실패했습니다.');
+    } finally {
       setIsDeleteModalOpen(false);
       setRentalToDelete(null);
     }
@@ -376,7 +391,7 @@ export default function RentalPage() {
                   <td className="whitespace-nowrap px-6 py-4 text-sm">
                     <button
                       onClick={() => handleDeleteClick(rental)}
-                      className="rounded-md p-1 text-[#8b95a1] hover:bg-[#fff0f1] hover:text-[#e93c3c]"
+                      className="rounded-md p-1 text-[#8b95a1] hover:bg-[#fff0f1] hover:text-[#e93c3c] cursor-pointer"
                     >
                       <Trash2 className="h-4 w-4" />
                     </button>
