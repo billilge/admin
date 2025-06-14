@@ -4,14 +4,14 @@ import { X, Folder } from 'lucide-react';
 import type React from 'react';
 import { useState, useEffect } from 'react';
 import toast from 'react-hot-toast';
-import { useAddItem } from '@/api-client';
-import { updateItem } from '@/api-client'; // 추가
+import { updateItem } from '@/api-client';
 import { ItemRequest, ItemRequestType } from '@/api-client/model';
+import { customMutator } from '@/lib/axiosMutator';
 
 interface AddItemModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onApply: () => void; // 성공 시 외부에 알림용 콜백
+  onApply: () => void;
   editItem?: {
     id: number;
     name: string;
@@ -35,20 +35,6 @@ export default function AddItemModal({
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [imageFileName, setImageFileName] = useState('');
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
-
-  const { mutate } = useAddItem({
-    mutation: {
-      onSuccess: () => {
-        toast.success('물품이 성공적으로 등록되었습니다.');
-        resetForm();
-        onApply();
-        onClose();
-      },
-      onError: () => {
-        toast.error('물품 등록 중 오류가 발생했습니다.');
-      },
-    },
-  });
 
   useEffect(() => {
     if (isEditMode && editItem) {
@@ -99,7 +85,7 @@ export default function AddItemModal({
     };
   }, [previewUrl, imageFile]);
 
-  const handleApply = () => {
+  const handleApply = async () => {
     if (!name.trim() || !quantity.trim()) {
       toast.error('모든 항목을 입력해 주세요.');
       return;
@@ -111,36 +97,59 @@ export default function AddItemModal({
       count: parseInt(quantity, 10),
     };
 
-    if (isEditMode && editItem) {
-      const formData = new FormData();
-      formData.append('itemRequest', JSON.stringify(itemRequest));
-      if (imageFile) formData.append('image', imageFile);
+    if (!imageFile && !isEditMode) {
+      toast.error('이미지를 반드시 첨부해 주세요.');
+      return;
+    }
 
-      updateItem(editItem.id, {
-        itemRequest,
-        image: imageFile ?? new Blob(), // 타입 만족용, 실제 서버는 없으면 무시
-      })
-        .then(() => {
-          toast.success('물품이 성공적으로 수정되었습니다.');
-          resetForm();
-          onApply();
-          onClose();
-        })
-        .catch(() => {
-          toast.error('물품 수정 중 오류가 발생했습니다.');
+    try {
+      if (isEditMode && editItem) {
+        const formData = new FormData();
+
+        formData.append(
+          'itemRequest',
+          new Blob([JSON.stringify(itemRequest)], { type: 'application/json' }),
+        );
+        if (imageFile) {
+          formData.append('image', imageFile);
+        }
+
+        await customMutator({
+          url: `/admin/items/${editItem.id}`,
+          method: 'PUT',
+          data: formData,
         });
-    } else {
-      if (!imageFile) {
-        toast.error('이미지를 반드시 첨부해 주세요.');
-        return;
+        toast.success('물품이 성공적으로 수정되었습니다.');
+      } else {
+        const formData = new FormData();
+
+        formData.append(
+          'itemRequest',
+          new Blob([JSON.stringify(itemRequest)], { type: 'application/json' }),
+        );
+
+        if (imageFile) {
+          formData.append('image', imageFile);
+        } else {
+          toast.error('이미지를 반드시 첨부해 주세요.');
+          return;
+        }
+
+        await customMutator({
+          url: '/admin/items',
+          method: 'POST',
+          data: formData,
+        });
+
+        toast.success('물품이 성공적으로 등록되었습니다.');
       }
 
-      mutate({
-        data: {
-          itemRequest,
-          image: imageFile,
-        },
-      });
+      resetForm();
+      onApply();
+      onClose();
+    } catch (error) {
+      toast.error('물품 처리 중 오류가 발생했습니다.');
+      console.error(error);
     }
   };
 
