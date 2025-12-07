@@ -101,21 +101,17 @@ export default function AddAdminModal({ isOpen, onClose, onApply }: AddAdminModa
               <tr key={student.memberId} className="border-b border-[#f2f4f6] last:border-b-0">
                 <td className="py-3 pr-2">
                   <div className="flex justify-center items-center">
-                    <label
-                      htmlFor={`student-${student.memberId}`}
-                      className="relative cursor-pointer"
+                    <button
+                      type="button"
+                      onClick={() => toggleStudent(student.memberId)}
+                      className={`flex h-5 w-5 items-center justify-center rounded border-2 transition-all duration-150 cursor-pointer ${
+                        isSelected
+                          ? 'border-[#004A98] bg-[#004A98]'
+                          : 'border-[#d1d6db] bg-white hover:border-[#004A98]'
+                      }`}
                     >
-                      <input
-                        id={`student-${student.memberId}`}
-                        type="checkbox"
-                        checked={isSelected}
-                        onChange={() => toggleStudent(student.memberId)}
-                        className="peer h-5 w-5 appearance-none rounded-md border border-[#d1d6db] bg-white checked:border-[#004A98] checked:bg-[#004A98] hover:border-[#004A98] focus:outline-none focus:ring-2 focus:ring-[#004A98] focus:ring-offset-2"
-                      />
-                      {isSelected && (
-                        <Check className="absolute inset-0 m-auto h-3 w-3 text-white pointer-events-none" />
-                      )}
-                    </label>
+                      {isSelected && <Check className="h-3.5 w-3.5 text-white stroke-[3]" />}
+                    </button>
                   </div>
                 </td>
                 <td className="py-3 pl-2 text-sm text-[#191f28]">{student.name}</td>

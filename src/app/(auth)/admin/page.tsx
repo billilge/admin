@@ -2,17 +2,19 @@
 
 import { useQueryClient, useMutation } from '@tanstack/react-query';
 import { Search, Plus, ChevronLeft, ChevronRight } from 'lucide-react';
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import toast from 'react-hot-toast';
-import { getGetAdminListQueryKey, useGetAdminList } from '@/api-client';
+import { useGetAdminList } from '@/api-client';
 import { addAdmins } from '@/api-client';
 import { AdminRequest } from '@/api-client/model';
 import AddAdminModal from '@/components/modal/AddAdminModal';
+import TableSkeleton from '@/components/ui/table-skeleton';
 import { Student } from '@/types/student';
 
 export default function AdminPage() {
   const [currentPage, setCurrentPage] = useState(1);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const cachedTotalPages = useRef(1);
 
   const queryClient = useQueryClient();
 
@@ -33,22 +35,23 @@ export default function AdminPage() {
     },
   );
 
-  const totalPages = adminListData?.totalPage ?? 1;
+  const totalPages = adminListData?.totalPage ?? cachedTotalPages.current;
+
+  useEffect(() => {
+    if (adminListData?.totalPage) {
+      cachedTotalPages.current = adminListData.totalPage;
+    }
+  }, [adminListData?.totalPage]);
 
   const addAdminsMutation = useMutation({
     mutationFn: (data: AdminRequest) => addAdmins(data),
     onSuccess: () => {
       toast.success('관리자가 성공적으로 추가되었습니다.');
 
+      // 모든 관리자 목록 쿼리를 무효화하여 어느 페이지든 갱신되도록 함
       queryClient.invalidateQueries({
-        queryKey: getGetAdminListQueryKey({
-          pageNo: currentPage - 1,
-          size: 10,
-          criteria: 'name',
-        }),
+        queryKey: ['/admin/members/admins'],
       });
-
-      // setIsModalOpen(false);
     },
     onError: () => {
       toast.error('관리자 추가에 실패했습니다.');
@@ -63,7 +66,6 @@ export default function AdminPage() {
     setIsModalOpen(false);
   };
 
-  if (isLoading) return <div>로딩 중...</div>;
   if (isError) return <div>데이터를 불러오는 데 실패했습니다.</div>;
 
   return (
@@ -104,19 +106,23 @@ export default function AdminPage() {
               </tr>
             </thead>
             <tbody>
-              {adminListData?.admins?.map((admin, index) => (
-                <tr
-                  key={index}
-                  className="border-b border-[#e5e8eb] last:border-b-0 hover:bg-[#f9fbfc]"
-                >
-                  <td className="whitespace-nowrap px-6 py-4 text-sm text-[#191f28]">
-                    {admin.name}
-                  </td>
-                  <td className="whitespace-nowrap px-6 py-4 text-sm text-[#191f28]">
-                    {admin.studentId}
-                  </td>
-                </tr>
-              ))}
+              {isLoading ? (
+                <TableSkeleton columns={2} rows={10} />
+              ) : (
+                adminListData?.admins?.map((admin, index) => (
+                  <tr
+                    key={index}
+                    className="border-b border-[#e5e8eb] last:border-b-0 hover:bg-[#f9fbfc]"
+                  >
+                    <td className="whitespace-nowrap px-6 py-4 text-sm text-[#191f28]">
+                      {admin.name}
+                    </td>
+                    <td className="whitespace-nowrap px-6 py-4 text-sm text-[#191f28]">
+                      {admin.studentId}
+                    </td>
+                  </tr>
+                ))
+              )}
             </tbody>
           </table>
         </div>

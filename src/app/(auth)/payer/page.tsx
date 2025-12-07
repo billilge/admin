@@ -9,13 +9,15 @@ import {
   CheckCircle,
   XCircle,
   FileDown,
+  Trash2,
 } from 'lucide-react';
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import toast from 'react-hot-toast';
-import { useGetAllPayers } from '@/api-client';
+import { useGetAllPayers, useDeletePayers } from '@/api-client';
 import { useAddPayers } from '@/api-client';
 import { createPayerExcel } from '@/api-client';
 import AddPayerModal from '@/components/modal/AddPayerModal';
+import TableSkeleton from '@/components/ui/table-skeleton';
 import { Payer } from '@/types/payer';
 
 export default function PayerPage() {
@@ -23,18 +25,43 @@ export default function PayerPage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [searchInput, setSearchInput] = useState('');
   const [searchKeyword, setSearchKeyword] = useState('');
+  const cachedTotalPages = useRef(1);
 
-  const { data, isLoading } = useGetAllPayers({
-    pageNo: currentPage - 1,
-    search: searchKeyword || undefined,
-  });
+  const { data, isLoading } = useGetAllPayers(
+    {
+      pageNo: currentPage - 1,
+      search: searchKeyword || undefined,
+    },
+    {
+      query: {
+        staleTime: 1000 * 60 * 3,
+      },
+    },
+  );
 
   const payers = data?.payers ?? [];
-  const totalPages = data?.totalPage ?? 1;
+  const totalPages = data?.totalPage ?? cachedTotalPages.current;
+
+  useEffect(() => {
+    if (data?.totalPage) {
+      cachedTotalPages.current = data.totalPage;
+    }
+  }, [data?.totalPage]);
 
   const { mutate: addPayers } = useAddPayers();
+  const { mutateAsync: deletePayers } = useDeletePayers();
 
   const queryClient = useQueryClient();
+
+  const handleDeletePayer = async (payerId: number) => {
+    try {
+      await deletePayers({ data: { payerIds: [payerId] } });
+      await queryClient.invalidateQueries({ queryKey: ['/admin/members/payers'] });
+      toast.success('납부자가 삭제되었습니다.');
+    } catch (error) {
+      toast.error('삭제 중 오류가 발생했습니다.');
+    }
+  };
 
   const handleAddPayers = (newPayers: Payer[]) => {
     const payload = {
@@ -141,35 +168,50 @@ export default function PayerPage() {
                 <th className="whitespace-nowrap px-6 py-3 text-left text-sm font-medium text-[#4e5968]">
                   회원 여부
                 </th>
+                <th className="whitespace-nowrap px-6 py-3 text-left text-sm font-medium text-[#4e5968]">
+                  관리
+                </th>
               </tr>
             </thead>
             <tbody>
-              {payers.map((payer) => (
-                <tr
-                  key={payer.payerId}
-                  className="border-b border-[#e5e8eb] last:border-b-0 hover:bg-[#f9fbfc]"
-                >
-                  <td className="whitespace-nowrap px-6 py-4 text-sm text-[#191f28]">
-                    {payer.name}
-                  </td>
-                  <td className="whitespace-nowrap px-6 py-4 text-sm text-[#191f28]">
-                    {payer.studentId}
-                  </td>
-                  <td className="whitespace-nowrap px-6 py-4 text-sm">
-                    {payer.registered ? (
-                      <div className="flex items-center gap-1 text-[#1b8b5a]">
-                        <CheckCircle className="h-4 w-4" />
-                        <span>O</span>
-                      </div>
-                    ) : (
-                      <div className="flex items-center gap-1 text-[#e93c3c]">
-                        <XCircle className="h-4 w-4" />
-                        <span>X</span>
-                      </div>
-                    )}
-                  </td>
-                </tr>
-              ))}
+              {isLoading ? (
+                <TableSkeleton columns={4} rows={10} />
+              ) : (
+                payers.map((payer) => (
+                  <tr
+                    key={payer.payerId}
+                    className="border-b border-[#e5e8eb] last:border-b-0 hover:bg-[#f9fbfc]"
+                  >
+                    <td className="whitespace-nowrap px-6 py-4 text-sm text-[#191f28]">
+                      {payer.name}
+                    </td>
+                    <td className="whitespace-nowrap px-6 py-4 text-sm text-[#191f28]">
+                      {payer.studentId}
+                    </td>
+                    <td className="whitespace-nowrap px-6 py-4 text-sm">
+                      {payer.registered ? (
+                        <div className="flex items-center gap-1 text-[#1b8b5a]">
+                          <CheckCircle className="h-4 w-4" />
+                          <span>O</span>
+                        </div>
+                      ) : (
+                        <div className="flex items-center gap-1 text-[#e93c3c]">
+                          <XCircle className="h-4 w-4" />
+                          <span>X</span>
+                        </div>
+                      )}
+                    </td>
+                    <td className="whitespace-nowrap px-6 py-4 text-sm">
+                      <button
+                        onClick={() => handleDeletePayer(payer.payerId)}
+                        className="rounded-md p-1 text-[#8b95a1] hover:bg-[#fff0f1] hover:text-[#e93c3c] cursor-pointer"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </button>
+                    </td>
+                  </tr>
+                ))
+              )}
             </tbody>
           </table>
         </div>

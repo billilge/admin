@@ -21,7 +21,20 @@ import { useDeleteRentalHistory } from '@/api-client';
 import { RentalHistoryRequest, RentalStatusUpdateRequestRentalStatus } from '@/api-client/model';
 import RentalAddModal from '@/components/modal/AddRentalModal';
 import RentalDeleteModal from '@/components/modal/DeleteRentalModal';
+import TableSkeleton from '@/components/ui/table-skeleton';
 import { Rental } from '@/types/rental';
+
+const formatDate = (dateString: string | null | undefined): string => {
+  if (!dateString) return '-';
+  const date = new Date(dateString);
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  const hours = String(date.getHours()).padStart(2, '0');
+  const minutes = String(date.getMinutes()).padStart(2, '0');
+  const seconds = String(date.getSeconds()).padStart(2, '0');
+  return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
+};
 
 type FilterType = 'none' | 'item' | 'rentalDate' | 'returnDate' | 'status';
 
@@ -47,11 +60,24 @@ export default function RentalPage() {
   const statusButtonRefs = useRef<{ [key: number]: HTMLButtonElement | null }>({});
   const [selectedStatus, setSelectedStatus] =
     useState<RentalStatusUpdateRequestRentalStatus | null>(null);
+  const cachedTotalPages = useRef(1);
 
-  const { data, isLoading, refetch } = useQuery(getGetAllRentalHistoriesQueryOptions());
+  const { data, isLoading } = useQuery({
+    ...getGetAllRentalHistoriesQueryOptions({
+      pageNo: currentPage - 1,
+      size: 10,
+    }),
+    staleTime: 1000 * 60 * 3,
+  });
   const { mutateAsync: updateRentalStatus } = useUpdateRentalStatus();
 
-  const totalPages = data?.totalPage ?? 1;
+  const totalPages = data?.totalPage ?? cachedTotalPages.current;
+
+  useEffect(() => {
+    if (data?.totalPage) {
+      cachedTotalPages.current = data.totalPage;
+    }
+  }, [data?.totalPage]);
 
   const rentals = data?.rentalHistories ?? [];
 
@@ -116,7 +142,7 @@ export default function RentalPage() {
   const handleAddRental = async (rentalData: RentalHistoryRequest) => {
     try {
       await createRental(rentalData);
-      await refetch();
+      await queryClient.invalidateQueries({ queryKey: ['/admin/rentals'] });
       setIsAddModalOpen(false);
     } catch (e) {
       console.error(e);
@@ -157,7 +183,7 @@ export default function RentalPage() {
       rentalHistoryId: rentalId,
       data: { rentalStatus: newStatus },
     });
-    await refetch();
+    await queryClient.invalidateQueries({ queryKey: ['/admin/rentals'] });
     setOpenStatusDropdown(null);
   };
 
@@ -331,73 +357,77 @@ export default function RentalPage() {
               </tr>
             </thead>
             <tbody>
-              {filteredAndSortedRentals().map((rental) => (
-                <tr
-                  key={rental.rentalHistoryId}
-                  className="border-b border-[#e5e8eb] last:border-b-0 hover:bg-[#f9fbfc]"
-                >
-                  <td className="whitespace-nowrap px-6 py-4 text-sm text-[#191f28]">
-                    {rental.member.name}
-                  </td>
-                  <td className="whitespace-nowrap px-6 py-4 text-sm text-[#191f28]">
-                    {rental.member.studentId}
-                  </td>
-                  <td className="whitespace-nowrap px-6 py-4 text-sm text-[#191f28]">
-                    {rental.itemName}
-                  </td>
-                  <td className="whitespace-nowrap px-6 py-4 text-sm text-[#6b7684]">
-                    <div className="flex items-center gap-1">
-                      <Calendar className="h-3 w-3" />
-                      <span>{rental.rentAt}</span>
-                    </div>
-                  </td>
-                  <td className="whitespace-nowrap px-6 py-4 text-sm text-[#6b7684]">
-                    {rental.returnedAt ? (
+              {isLoading ? (
+                <TableSkeleton columns={7} rows={10} />
+              ) : (
+                filteredAndSortedRentals().map((rental) => (
+                  <tr
+                    key={rental.rentalHistoryId}
+                    className="border-b border-[#e5e8eb] last:border-b-0 hover:bg-[#f9fbfc]"
+                  >
+                    <td className="whitespace-nowrap px-6 py-4 text-sm text-[#191f28]">
+                      {rental.member.name}
+                    </td>
+                    <td className="whitespace-nowrap px-6 py-4 text-sm text-[#191f28]">
+                      {rental.member.studentId}
+                    </td>
+                    <td className="whitespace-nowrap px-6 py-4 text-sm text-[#191f28]">
+                      {rental.itemName}
+                    </td>
+                    <td className="whitespace-nowrap px-6 py-4 text-sm text-[#6b7684]">
                       <div className="flex items-center gap-1">
-                        <Clock className="h-3 w-3" />
-                        <span>{rental.returnedAt}</span>
+                        <Calendar className="h-3 w-3" />
+                        <span>{formatDate(rental.rentAt)}</span>
                       </div>
-                    ) : (
-                      <span className="text-[#8b95a1]">-</span>
-                    )}
-                  </td>
-                  {/*<td className="whitespace-nowrap px-6 py-4 text-sm text-[#6b7684]">*/}
-                  {/*  <div className="flex items-center gap-1">*/}
-                  {/*    <User className="h-3 w-3" />*/}
-                  {/*    <span>{rental.staff}</span>*/}
-                  {/*  </div>*/}
-                  {/*</td>*/}
-                  <td className="whitespace-nowrap px-6 py-4 text-sm ">
-                    <div
-                      className="relative"
-                      ref={(el) => {
-                        statusDropdownRefs.current[rental.rentalHistoryId] = el;
-                      }}
-                    >
-                      <button
+                    </td>
+                    <td className="whitespace-nowrap px-6 py-4 text-sm text-[#6b7684]">
+                      {rental.returnedAt ? (
+                        <div className="flex items-center gap-1">
+                          <Clock className="h-3 w-3" />
+                          <span>{formatDate(rental.returnedAt)}</span>
+                        </div>
+                      ) : (
+                        <span className="text-[#8b95a1]">-</span>
+                      )}
+                    </td>
+                    {/*<td className="whitespace-nowrap px-6 py-4 text-sm text-[#6b7684]">*/}
+                    {/*  <div className="flex items-center gap-1">*/}
+                    {/*    <User className="h-3 w-3" />*/}
+                    {/*    <span>{rental.staff}</span>*/}
+                    {/*  </div>*/}
+                    {/*</td>*/}
+                    <td className="whitespace-nowrap px-6 py-4 text-sm ">
+                      <div
+                        className="relative"
                         ref={(el) => {
-                          statusButtonRefs.current[rental.rentalHistoryId] = el;
+                          statusDropdownRefs.current[rental.rentalHistoryId] = el;
                         }}
-                        onClick={() => handleStatusClick(rental.rentalHistoryId)}
-                        className={`inline-flex items-center gap-1 rounded-md px-2 py-1 text-xs font-medium cursor-pointer ${getStatusColor(
-                          rental.rentalStatus,
-                        )}`}
                       >
-                        <span>{getStatusLabel(rental.rentalStatus)}</span>
-                        <ChevronDown className="h-3 w-3" />
+                        <button
+                          ref={(el) => {
+                            statusButtonRefs.current[rental.rentalHistoryId] = el;
+                          }}
+                          onClick={() => handleStatusClick(rental.rentalHistoryId)}
+                          className={`inline-flex items-center gap-1 rounded-md px-2 py-1 text-xs font-medium cursor-pointer ${getStatusColor(
+                            rental.rentalStatus,
+                          )}`}
+                        >
+                          <span>{getStatusLabel(rental.rentalStatus)}</span>
+                          <ChevronDown className="h-3 w-3" />
+                        </button>
+                      </div>
+                    </td>
+                    <td className="whitespace-nowrap px-6 py-4 text-sm">
+                      <button
+                        onClick={() => handleDeleteClick(rental)}
+                        className="rounded-md p-1 text-[#8b95a1] hover:bg-[#fff0f1] hover:text-[#e93c3c] cursor-pointer"
+                      >
+                        <Trash2 className="h-4 w-4" />
                       </button>
-                    </div>
-                  </td>
-                  <td className="whitespace-nowrap px-6 py-4 text-sm">
-                    <button
-                      onClick={() => handleDeleteClick(rental)}
-                      className="rounded-md p-1 text-[#8b95a1] hover:bg-[#fff0f1] hover:text-[#e93c3c] cursor-pointer"
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </button>
-                  </td>
-                </tr>
-              ))}
+                    </td>
+                  </tr>
+                ))
+              )}
             </tbody>
           </table>
         </div>

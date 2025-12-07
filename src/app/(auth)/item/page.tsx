@@ -1,11 +1,13 @@
 'use client';
 
+import { useQueryClient } from '@tanstack/react-query';
 import { Search, Plus, ChevronLeft, ChevronRight, Edit, Trash2 } from 'lucide-react';
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import toast from 'react-hot-toast';
 import { useDeleteItem, useGetAllAdminItems } from '@/api-client';
 import ItemAddModal from '@/components/modal/AddItemModal';
 import DeleteItemModal from '@/components/modal/DeleteItemModal';
+import TableSkeleton from '@/components/ui/table-skeleton';
 import { Item } from '@/types/item';
 
 export default function ItemPage() {
@@ -16,10 +18,26 @@ export default function ItemPage() {
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [itemToDelete, setItemToDelete] = useState<Item | null>(null);
   const [searchKeyword, setSearchKeyword] = useState('');
+  const cachedTotalPages = useRef(1);
 
-  const { data, isLoading, refetch } = useGetAllAdminItems({ pageNo: currentPage });
+  const queryClient = useQueryClient();
+
+  const { data, isLoading } = useGetAllAdminItems(
+    { pageNo: currentPage - 1 },
+    {
+      query: {
+        staleTime: 1000 * 60 * 3,
+      },
+    },
+  );
   const items = data?.items ?? [];
-  const totalPages = (data?.totalPage ?? 1) - 1;
+  const totalPages = data?.totalPage ?? cachedTotalPages.current;
+
+  useEffect(() => {
+    if (data?.totalPage) {
+      cachedTotalPages.current = data.totalPage;
+    }
+  }, [data?.totalPage]);
 
   const filteredItems = items.filter((item) =>
     item.itemName.toLowerCase().includes(searchKeyword.toLowerCase()),
@@ -48,7 +66,7 @@ export default function ItemPage() {
     if (itemToDelete) {
       try {
         await deleteItem({ itemId: itemToDelete.itemId });
-        await refetch(); // 최신 데이터 다시 불러오기
+        await queryClient.invalidateQueries({ queryKey: ['/admin/items'] });
         setIsDeleteModalOpen(false);
         setItemToDelete(null);
         toast.success('물품이 성공적으로 삭제되었습니다.');
@@ -60,7 +78,7 @@ export default function ItemPage() {
 
   // api 모달에서 호출 후 반영만 진행
   const handleItemSubmit = async () => {
-    await refetch();
+    await queryClient.invalidateQueries({ queryKey: ['/admin/items'] });
     handleCloseModal();
   };
 
@@ -121,11 +139,11 @@ export default function ItemPage() {
                 <th className="whitespace-nowrap px-6 py-3 text-left text-sm font-medium text-[#4e5968]">
                   대여품/소모품
                 </th>
-                <th className="whitespace-nowrap px-6 py-3 text-left text-sm font-medium text-[#4e5968]">
+                <th className="whitespace-nowrap px-6 py-3 text-center text-sm font-medium text-[#4e5968]">
                   수량
                 </th>
-                <th className="whitespace-nowrap px-6 py-3 text-left text-sm font-medium text-[#4e5968]">
-                  대여 항목 수
+                <th className="whitespace-nowrap px-6 py-3 text-center text-sm font-medium text-[#4e5968]">
+                  누적 대여 수
                 </th>
                 <th className="whitespace-nowrap px-6 py-3 text-left text-sm font-medium text-[#4e5968]">
                   관리
@@ -133,65 +151,69 @@ export default function ItemPage() {
               </tr>
             </thead>
             <tbody>
-              {filteredItems.map((item) => (
-                <tr
-                  key={item.itemId}
-                  className="border-b border-[#e5e8eb] last:border-b-0 hover:bg-[#f9fbfc]"
-                >
-                  <td className="whitespace-nowrap px-6 py-4 text-sm">
-                    <div className="flex h-10 w-10 items-center justify-center">
-                      {item.imageUrl ? (
-                        <img src={item.imageUrl} alt={item.itemName} />
-                      ) : (
-                        <div className="h-10 w-10 flex items-center justify-center text-xs text-[#8b95a1] bg-gray-100 rounded-md">
-                          없음
-                        </div>
-                      )}
-                    </div>
-                  </td>
+              {isLoading ? (
+                <TableSkeleton columns={6} rows={10} />
+              ) : (
+                filteredItems.map((item) => (
+                  <tr
+                    key={item.itemId}
+                    className="border-b border-[#e5e8eb] last:border-b-0 hover:bg-[#f9fbfc]"
+                  >
+                    <td className="whitespace-nowrap px-6 py-4 text-sm">
+                      <div className="flex h-10 w-10 items-center justify-center">
+                        {item.imageUrl ? (
+                          <img src={item.imageUrl} alt={item.itemName} />
+                        ) : (
+                          <div className="h-10 w-10 flex items-center justify-center text-xs text-[#8b95a1] bg-gray-100 rounded-md">
+                            없음
+                          </div>
+                        )}
+                      </div>
+                    </td>
 
-                  <td className="whitespace-nowrap px-6 py-4 text-sm text-[#191f28]">
-                    {item.itemName}
-                  </td>
-                  <td className="whitespace-nowrap px-6 py-4 text-sm">
-                    <span
-                      className={`inline-flex rounded-full px-2 py-1 text-xs font-medium ${getItemTypeColor(
-                        item.itemType,
-                      )}`}
-                    >
-                      {getItemTypeLabel(item.itemType)}
-                    </span>
-                  </td>
-                  <td className="whitespace-nowrap px-6 py-4 text-sm text-[#191f28]">
-                    {item.count}
-                  </td>
-                  <td className="whitespace-nowrap px-6 py-4 text-sm">
-                    {item.itemType === 'RENTAL' ? (
-                      <span className={getRentedCountColor(item.renterCount)}>
-                        {item.renterCount}
+                    <td className="whitespace-nowrap px-6 py-4 text-sm text-[#191f28]">
+                      {item.itemName}
+                    </td>
+                    <td className="whitespace-nowrap px-6 py-4 text-sm">
+                      <span
+                        className={`inline-flex rounded-full px-2 py-1 text-xs font-medium ${getItemTypeColor(
+                          item.itemType,
+                        )}`}
+                      >
+                        {getItemTypeLabel(item.itemType)}
                       </span>
-                    ) : (
-                      <span className="text-[#8b95a1]">-</span>
-                    )}
-                  </td>
-                  <td className="whitespace-nowrap px-6 py-4 text-sm">
-                    <div className="flex items-center gap-2">
-                      <button
-                        onClick={() => handleEditItem(item)}
-                        className="rounded-md p-1 text-[#8b95a1] hover:bg-[#f2f4f6] hover:text-[#4e5968] cursor-pointer"
-                      >
-                        <Edit className="h-4 w-4" />
-                      </button>
-                      <button
-                        onClick={() => handleDeleteItem(item)}
-                        className="rounded-md p-1 text-[#8b95a1] hover:bg-[#fff0f1] hover:text-[#e93c3c] cursor-pointer"
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-              ))}
+                    </td>
+                    <td className="whitespace-nowrap px-6 py-4 text-sm text-[#191f28] text-center">
+                      {item.count}
+                    </td>
+                    <td className="whitespace-nowrap px-6 py-4 text-sm text-center">
+                      {item.itemType === 'RENTAL' ? (
+                        <span className={getRentedCountColor(item.renterCount)}>
+                          {item.renterCount}
+                        </span>
+                      ) : (
+                        <span className="text-[#8b95a1]">-</span>
+                      )}
+                    </td>
+                    <td className="whitespace-nowrap px-6 py-4 text-sm">
+                      <div className="flex items-center gap-2">
+                        <button
+                          onClick={() => handleEditItem(item)}
+                          className="rounded-md p-1 text-[#8b95a1] hover:bg-[#f2f4f6] hover:text-[#4e5968] cursor-pointer"
+                        >
+                          <Edit className="h-4 w-4" />
+                        </button>
+                        <button
+                          onClick={() => handleDeleteItem(item)}
+                          className="rounded-md p-1 text-[#8b95a1] hover:bg-[#fff0f1] hover:text-[#e93c3c] cursor-pointer"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))
+              )}
             </tbody>
           </table>
         </div>
