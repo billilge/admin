@@ -50,6 +50,18 @@ export default function AuthLayout({ children }: AuthLayoutProps) {
               물품 관리
             </Link>
             <Link
+              href="/display"
+              className="rounded-md px-3 py-2 text-sm font-medium text-[#4e5968] hover:bg-[#f2f4f6] hover:text-[#191f28]"
+            >
+              디스플레이 관리
+            </Link>
+            <Link
+              href="/setting"
+              className="rounded-md px-3 py-2 text-sm font-medium text-[#4e5968] hover:bg-[#f2f4f6] hover:text-[#191f28]"
+            >
+              설정 관리
+            </Link>
+            <Link
               href="/login"
               className="rounded-md px-3 py-2 text-sm font-medium text-[#4e5968] hover:bg-[#f2f4f6] hover:text-[#191f28]"
             >
