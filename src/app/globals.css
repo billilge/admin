@@ -44,37 +44,85 @@
 
 :root {
   --radius: 0.625rem;
-  --background: oklch(1 0 0);
-  --foreground: oklch(0.145 0 0);
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.145 0 0);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.145 0 0);
-  --primary: oklch(0.205 0 0);
-  --primary-foreground: oklch(0.985 0 0);
-  --secondary: oklch(0.97 0 0);
-  --secondary-foreground: oklch(0.205 0 0);
-  --muted: oklch(0.97 0 0);
-  --muted-foreground: oklch(0.556 0 0);
-  --accent: oklch(0.97 0 0);
-  --accent-foreground: oklch(0.205 0 0);
-  --destructive: oklch(0.577 0.245 27.325);
-  --border: oklch(0.922 0 0);
-  --input: oklch(0.922 0 0);
-  --ring: oklch(0.708 0 0);
-  --chart-1: oklch(0.646 0.222 41.116);
-  --chart-2: oklch(0.6 0.118 184.704);
-  --chart-3: oklch(0.398 0.07 227.392);
-  --chart-4: oklch(0.828 0.189 84.429);
-  --chart-5: oklch(0.769 0.188 70.08);
-  --sidebar: oklch(0.985 0 0);
-  --sidebar-foreground: oklch(0.145 0 0);
-  --sidebar-primary: oklch(0.205 0 0);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.97 0 0);
-  --sidebar-accent-foreground: oklch(0.205 0 0);
-  --sidebar-border: oklch(0.922 0 0);
-  --sidebar-ring: oklch(0.708 0 0);
+
+  /* 배경 색상 */
+  --background: #f9fbfc;
+  --background-secondary: #ffffff;
+  --background-hover: #f2f4f6;
+  --background-active: rgba(0, 74, 152, 0.08);
+
+  /* 텍스트 색상 */
+  --foreground: #191f28;
+  --foreground-muted: #4e5968;
+  --foreground-subtle: #8b95a1;
+
+  /* 테두리 */
+  --border: #e5e8eb;
+  --border-muted: #f2f4f6;
+
+  /* Primary (기존 파란색) */
+  --primary: #004A98;
+  --primary-hover: #003a7a;
+  --primary-foreground: #ffffff;
+
+  /* 상태 색상 */
+  --success: #1b8b5a;
+  --success-bg: #e7f4ec;
+  --warning: #b25e09;
+  --warning-bg: #fff3e0;
+  --error: #e93c3c;
+  --error-bg: #fff0f1;
+  --info: #004A98;
+  --info-bg: rgba(0, 74, 152, 0.08);
+
+  /* 카드 */
+  --card: #ffffff;
+  --card-foreground: #191f28;
+
+  /* 팝오버/모달 */
+  --popover: #ffffff;
+  --popover-foreground: #191f28;
+
+  /* 입력 필드 */
+  --input: #ffffff;
+  --input-border: #e5e8eb;
+  --input-focus: #004A98;
+  --ring: #004A98;
+
+  /* 사이드바 (라이트 모드) */
+  --sidebar: #ffffff;
+  --sidebar-foreground: #191f28;
+  --sidebar-muted: #8b95a1;
+  --sidebar-hover: #f2f4f6;
+  --sidebar-active: rgba(0, 74, 152, 0.08);
+  --sidebar-border: #e5e8eb;
+  --sidebar-primary: #004A98;
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent: #f2f4f6;
+  --sidebar-accent-foreground: #191f28;
+  --sidebar-ring: #004A98;
+
+  /* Secondary */
+  --secondary: #f2f4f6;
+  --secondary-foreground: #191f28;
+
+  /* Muted */
+  --muted: #f2f4f6;
+  --muted-foreground: #4e5968;
+
+  /* Accent */
+  --accent: #f2f4f6;
+  --accent-foreground: #191f28;
+
+  /* Destructive */
+  --destructive: #e93c3c;
+
+  /* Charts */
+  --chart-1: #004A98;
+  --chart-2: #1b8b5a;
+  --chart-3: #4e5968;
+  --chart-4: #b25e09;
+  --chart-5: #e93c3c;
 }
 
 .dark {

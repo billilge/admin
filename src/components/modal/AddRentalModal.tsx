@@ -60,7 +60,6 @@ export default function AddRentalModal({ isOpen, onClose, onApply }: RentalAddMo
     mutation: {
       onSuccess: () => {
         queryClient.invalidateQueries({ queryKey });
-        // onApply?.();
         onClose();
         toast.success('대여 기록이 추가되었습니다.');
       },
@@ -94,42 +93,39 @@ export default function AddRentalModal({ isOpen, onClose, onApply }: RentalAddMo
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
-      <div className="w-full max-w-md rounded-lg bg-white shadow-md">
-        {/* Header */}
-        <div className="flex items-center justify-between border-b px-6 py-4">
-          <h2 className="text-xl font-bold">대여 기록 추가하기</h2>
-          <button onClick={onClose} className="p-1 text-gray-500 hover:text-gray-800">
+      <div className="w-full max-w-md rounded-lg bg-[var(--popover)] shadow-xl">
+        <div className="flex items-center justify-between border-b border-[var(--border)] px-6 py-4">
+          <h2 className="text-xl font-bold text-[var(--foreground)]">대여 기록 추가하기</h2>
+          <button onClick={onClose} className="p-1 text-[var(--foreground-subtle)] hover:text-[var(--foreground)]">
             <X className="h-5 w-5" />
           </button>
         </div>
 
-        {/* Form */}
         <div className="px-6 py-4 space-y-4 max-h-[70vh] overflow-y-auto">
-          {/* 학생 선택 */}
           <div>
-            <label className="block text-sm font-medium">학생 검색</label>
+            <label className="block text-sm font-medium text-[var(--foreground-muted)]">학생 검색</label>
             <input
               type="text"
               value={studentSearchTerm}
               onChange={(e) => setStudentSearchTerm(e.target.value)}
-              className="mt-1 w-full rounded-md border px-3 py-2"
+              className="mt-1 w-full rounded-lg border border-[var(--border)] bg-[var(--input)] px-3 py-2 text-[var(--foreground)] placeholder:text-[var(--foreground-subtle)] focus:border-[var(--primary)] focus:outline-none"
               placeholder="이름 또는 학번"
             />
-            <div className="mt-1 border rounded-md max-h-32 overflow-y-auto">
+            <div className="mt-1 border border-[var(--border)] rounded-lg max-h-32 overflow-y-auto">
               {(studentFocused || studentSearchTerm) && (
-                <div className="mt-1 border rounded-md max-h-32 overflow-y-auto">
+                <div className="mt-1 border border-[var(--border)] rounded-lg max-h-32 overflow-y-auto">
                   {students.map((student) => (
                     <div
                       key={student.memberId}
-                      className="px-3 py-2 cursor-pointer hover:bg-gray-100"
+                      className="px-3 py-2 cursor-pointer hover:bg-[var(--background-hover)]"
                       onClick={() => {
                         setSelectedStudent(student);
                         setStudentSearchTerm(`${student.name} (${student.studentId})`);
                         setStudentFocused(false);
                       }}
                     >
-                      <div className="text-sm font-medium">{student.name}</div>
-                      <div className="text-xs text-gray-500">{student.studentId}</div>
+                      <div className="text-sm font-medium text-[var(--foreground)]">{student.name}</div>
+                      <div className="text-xs text-[var(--foreground-muted)]">{student.studentId}</div>
                     </div>
                   ))}
                 </div>
@@ -137,29 +133,28 @@ export default function AddRentalModal({ isOpen, onClose, onApply }: RentalAddMo
             </div>
           </div>
 
-          {/* 물품 선택 */}
           <div>
-            <label className="block text-sm font-medium">대여 물품</label>
+            <label className="block text-sm font-medium text-[var(--foreground-muted)]">대여 물품</label>
             <input
               type="text"
               value={itemSearchTerm}
               onChange={(e) => setItemSearchTerm(e.target.value)}
-              className="mt-1 w-full rounded-md border px-3 py-2"
+              className="mt-1 w-full rounded-lg border border-[var(--border)] bg-[var(--input)] px-3 py-2 text-[var(--foreground)] placeholder:text-[var(--foreground-subtle)] focus:border-[var(--primary)] focus:outline-none"
               placeholder="물품명"
             />
             {(itemFocused || itemSearchTerm) && (
-              <div className="mt-1 border rounded-md max-h-32 overflow-y-auto">
+              <div className="mt-1 border border-[var(--border)] rounded-lg max-h-32 overflow-y-auto">
                 {filteredItems.map((item) => (
                   <div
                     key={item.itemId}
-                    className="px-3 py-2 cursor-pointer hover:bg-gray-100"
+                    className="px-3 py-2 cursor-pointer hover:bg-[var(--background-hover)]"
                     onClick={() => {
                       setSelectedItem(item);
                       setItemSearchTerm(item.itemName);
                     }}
                   >
-                    <div className="text-sm font-medium">{item.itemName}</div>
-                    <div className="text-xs text-gray-500">
+                    <div className="text-sm font-medium text-[var(--foreground)]">{item.itemName}</div>
+                    <div className="text-xs text-[var(--foreground-muted)]">
                       남은 수량: {item.count - item.renterCount}/{item.count}
                     </div>
                   </div>
@@ -168,51 +163,49 @@ export default function AddRentalModal({ isOpen, onClose, onApply }: RentalAddMo
             )}
           </div>
 
-          {/* 날짜 및 시간 */}
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium">대여 날짜</label>
+              <label className="block text-sm font-medium text-[var(--foreground-muted)]">대여 날짜</label>
               <input
                 type="date"
                 value={rentalDate}
                 onChange={(e) => setRentalDate(e.target.value)}
-                className="mt-1 w-full rounded-md border px-3 py-2"
+                className="mt-1 w-full rounded-lg border border-[var(--border)] bg-[var(--input)] px-3 py-2 text-[var(--foreground)] focus:border-[var(--primary)] focus:outline-none"
               />
             </div>
             <div>
-              <label className="block text-sm font-medium">대여 시간</label>
+              <label className="block text-sm font-medium text-[var(--foreground-muted)]">대여 시간</label>
               <input
                 type="time"
                 value={rentalTime}
                 onChange={(e) => setRentalTime(e.target.value)}
-                className="mt-1 w-full rounded-md border px-3 py-2"
+                className="mt-1 w-full rounded-lg border border-[var(--border)] bg-[var(--input)] px-3 py-2 text-[var(--foreground)] focus:border-[var(--primary)] focus:outline-none"
               />
             </div>
           </div>
 
-          {/* 근무자 선택 */}
           <div>
-            <label className="block text-sm font-medium">근무자</label>
+            <label className="block text-sm font-medium text-[var(--foreground-muted)]">근무자</label>
             <input
               type="text"
               value={staffSearchTerm}
               onChange={(e) => setStaffSearchTerm(e.target.value)}
-              className="mt-1 w-full rounded-md border px-3 py-2"
+              className="mt-1 w-full rounded-lg border border-[var(--border)] bg-[var(--input)] px-3 py-2 text-[var(--foreground)] placeholder:text-[var(--foreground-subtle)] focus:border-[var(--primary)] focus:outline-none"
               placeholder="이름 또는 학번"
             />
             {(staffFocused || staffSearchTerm) && (
-              <div className="mt-1 border rounded-md max-h-32 overflow-y-auto">
+              <div className="mt-1 border border-[var(--border)] rounded-lg max-h-32 overflow-y-auto">
                 {filteredStaffs.map((staff) => (
                   <div
                     key={staff.memberId}
-                    className="px-3 py-2 cursor-pointer hover:bg-gray-100"
+                    className="px-3 py-2 cursor-pointer hover:bg-[var(--background-hover)]"
                     onClick={() => {
                       setSelectedStaff(staff);
                       setStaffSearchTerm(`${staff.name} (${staff.studentId})`);
                     }}
                   >
-                    <div className="text-sm font-medium">{staff.name}</div>
-                    <div className="text-xs text-gray-500">{staff.studentId}</div>
+                    <div className="text-sm font-medium text-[var(--foreground)]">{staff.name}</div>
+                    <div className="text-xs text-[var(--foreground-muted)]">{staff.studentId}</div>
                   </div>
                 ))}
               </div>
@@ -220,14 +213,13 @@ export default function AddRentalModal({ isOpen, onClose, onApply }: RentalAddMo
           </div>
         </div>
 
-        {/* Footer */}
-        <div className="px-6 py-4 border-t">
+        <div className="px-6 py-4 border-t border-[var(--border)]">
           <button
             onClick={handleApply}
             disabled={
               !selectedStudent || !selectedItem || !selectedStaff || !rentalDate || !rentalTime
             }
-            className="w-full rounded-md bg-[#004A98] py-3 text-white font-medium disabled:opacity-50 cursor-pointer"
+            className="w-full rounded-lg bg-[var(--primary)] py-3 text-[var(--primary-foreground)] font-medium disabled:opacity-50 cursor-pointer hover:bg-[var(--primary-hover)]"
           >
             대여 기록 추가
           </button>

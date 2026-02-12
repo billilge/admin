@@ -79,7 +79,13 @@ export default function LoginPage() {
           <h1 className="text-3xl font-bold tracking-tight text-[#191f28] md:text-4xl">
             복지물품 대여 시스템
           </h1>
-          <p className="mt-3 text-[#8b95a1]">학번과 비밀번호를 입력하여 로그인하세요.</p>
+          <div className="mt-3 flex items-center justify-center gap-2 md:justify-start">
+            <span className="text-2xl font-bold text-[#004A98]">빌릴게</span>
+            <span className="rounded-full bg-[#004A98] px-3 py-1 text-xs font-medium text-white">
+              관리자
+            </span>
+          </div>
+          <p className="mt-4 text-[#8b95a1]">학번과 비밀번호를 입력하여 로그인하세요.</p>
         </div>
       </div>
 

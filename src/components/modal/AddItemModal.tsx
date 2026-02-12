@@ -170,27 +170,25 @@ export default function AddItemModal({
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
       <div
-        className="w-full max-w-md overflow-hidden rounded-md bg-white shadow-[0_1px_3px_rgba(0,0,0,0.1)]"
+        className="w-full max-w-md overflow-hidden rounded-lg bg-[var(--popover)] shadow-xl"
         style={{ maxHeight: 'calc(100vh - 40px)' }}
       >
-        <div className="flex items-center justify-between border-b border-[#e5e8eb] px-6 py-4 ">
-          <h2 className="text-xl font-bold text-[#191f28] ">
+        <div className="flex items-center justify-between border-b border-[var(--border)] px-6 py-4">
+          <h2 className="text-xl font-bold text-[var(--foreground)]">
             {isEditMode ? '복지 물품 수정하기' : '복지 물품 추가하기'}
           </h2>
           <button
             onClick={onClose}
-            className="rounded-full p-1 text-[#8b95a1] hover:bg-[#f2f4f6] hover:text-[#4e5968]"
+            className="rounded-full p-1 text-[var(--foreground-subtle)] hover:bg-[var(--background-hover)] hover:text-[var(--foreground-muted)]"
           >
             <X className="h-5 w-5" />
           </button>
         </div>
 
-        {/* Form */}
         <div className="px-6 py-4">
           <div className="space-y-5">
-            {/* Item Name */}
             <div className="space-y-2">
-              <label htmlFor="item-name" className="block text-sm font-medium text-[#4e5968]">
+              <label htmlFor="item-name" className="block text-sm font-medium text-[var(--foreground-muted)]">
                 복지물품명
               </label>
               <input
@@ -199,13 +197,12 @@ export default function AddItemModal({
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 placeholder="등록할 복지물품의 이름을 입력해 주세요."
-                className="h-12 w-full rounded-md border border-[#e5e8eb] bg-[#f9fbfc] px-4 text-[#191f28] placeholder:text-[#8b95a1] focus:border-[#004A98] focus:outline-none focus:ring-1 focus:ring-[#004A98]"
+                className="h-12 w-full rounded-lg border border-[var(--border)] bg-[var(--input)] px-4 text-[var(--foreground)] placeholder:text-[var(--foreground-subtle)] focus:border-[var(--primary)] focus:outline-none focus:ring-1 focus:ring-[var(--primary)]"
               />
             </div>
 
-            {/* Consumable Status */}
             <div className="space-y-2">
-              <label className="block text-sm font-medium text-[#4e5968]">소모품 여부</label>
+              <label className="block text-sm font-medium text-[var(--foreground-muted)]">소모품 여부</label>
               <div className="flex gap-3">
                 <label className="flex items-center">
                   <input
@@ -215,7 +212,7 @@ export default function AddItemModal({
                     onChange={() => setIsConsumable(false)}
                     className="peer h-0 w-0 opacity-0"
                   />
-                  <span className="flex h-12 items-center justify-center rounded-md border border-[#e5e8eb] bg-[#f9fbfc] px-6 text-sm text-[#4e5968] peer-checked:border-[#004A98] peer-checked:bg-[#e6eef5] peer-checked:text-[#004A98] peer-checked:font-medium cursor-pointer">
+                  <span className="flex h-12 items-center justify-center rounded-lg border border-[var(--border)] bg-[var(--input)] px-6 text-sm text-[var(--foreground-muted)] peer-checked:border-[var(--primary)] peer-checked:bg-[var(--info-bg)] peer-checked:text-[var(--primary)] peer-checked:font-medium cursor-pointer">
                     대여물품
                   </span>
                 </label>
@@ -227,7 +224,7 @@ export default function AddItemModal({
                     onChange={() => setIsConsumable(true)}
                     className="peer h-0 w-0 opacity-0"
                   />
-                  <span className="flex h-12 items-center justify-center rounded-md border border-[#e5e8eb] bg-[#f9fbfc] px-6 text-sm text-[#4e5968] peer-checked:border-[#004A98] peer-checked:bg-[#e6eef5] peer-checked:text-[#004A98] peer-checked:font-medium cursor-pointer">
+                  <span className="flex h-12 items-center justify-center rounded-lg border border-[var(--border)] bg-[var(--input)] px-6 text-sm text-[var(--foreground-muted)] peer-checked:border-[var(--primary)] peer-checked:bg-[var(--info-bg)] peer-checked:text-[var(--primary)] peer-checked:font-medium cursor-pointer">
                     소모품
                   </span>
                 </label>
@@ -235,7 +232,7 @@ export default function AddItemModal({
             </div>
 
             <div className="space-y-2">
-              <label htmlFor="item-quantity" className="block text-sm font-medium text-[#4e5968]">
+              <label htmlFor="item-quantity" className="block text-sm font-medium text-[var(--foreground-muted)]">
                 수량
               </label>
               <input
@@ -245,34 +242,32 @@ export default function AddItemModal({
                 value={quantity}
                 onChange={(e) => setQuantity(e.target.value)}
                 placeholder="등록할 복지물품의 수량을 입력해 주세요."
-                className="h-12 w-full rounded-md border border-[#e5e8eb] bg-[#f9fbfc] px-4 text-[#191f28] placeholder:text-[#8b95a1] focus:border-[#004A98] focus:outline-none focus:ring-1 focus:ring-[#004A98]"
+                className="h-12 w-full rounded-lg border border-[var(--border)] bg-[var(--input)] px-4 text-[var(--foreground)] placeholder:text-[var(--foreground-subtle)] focus:border-[var(--primary)] focus:outline-none focus:ring-1 focus:ring-[var(--primary)]"
               />
             </div>
 
-            {/* Image Upload */}
             <div className="space-y-2">
-              <label className="block text-sm font-medium text-[#4e5968]">
+              <label className="block text-sm font-medium text-[var(--foreground-muted)]">
                 이미지 업로드 (.svg 파일)
               </label>
               <div className="flex items-center gap-3">
-                <label className="flex h-10 w-10 cursor-pointer items-center justify-center rounded-md border border-[#e5e8eb] bg-[#f9fbfc] hover:bg-[#f2f4f6]">
+                <label className="flex h-10 w-10 cursor-pointer items-center justify-center rounded-lg border border-[var(--border)] bg-[var(--input)] hover:bg-[var(--background-hover)]">
                   <input
                     type="file"
                     accept=".svg,image/svg+xml"
                     onChange={handleFileChange}
                     className="hidden"
                   />
-                  <Folder className="h-5 w-5 text-[#6b7684]" />
+                  <Folder className="h-5 w-5 text-[var(--foreground-muted)]" />
                 </label>
-                <span className="text-sm text-[#6b7684]">
+                <span className="text-sm text-[var(--foreground-muted)]">
                   {imageFileName || '선택된 파일 없음'}
                 </span>
               </div>
 
-              {/* Image Preview */}
               {previewUrl && (
-                <div className="mt-3 overflow-hidden rounded-md border border-[#e5e8eb]">
-                  <div className="relative aspect-video bg-[#f9fbfc]">
+                <div className="mt-3 overflow-hidden rounded-lg border border-[var(--border)]">
+                  <div className="relative aspect-video bg-[var(--background)]">
                     <img
                       src={previewUrl || '/placeholder.svg'}
                       alt="Preview"
@@ -285,11 +280,10 @@ export default function AddItemModal({
           </div>
         </div>
 
-        {/* Footer with Apply Button */}
-        <div className="border-t border-[#e5e8eb] px-6 py-4">
+        <div className="border-t border-[var(--border)] px-6 py-4">
           <button
             onClick={handleApply}
-            className="h-12 w-full rounded-md bg-[#004A98] text-base font-medium text-white hover:bg-[#003a7a] focus:outline-none focus:ring-2 focus:ring-[#004A98] focus:ring-offset-2 cursor-pointer"
+            className="h-12 w-full rounded-lg bg-[var(--primary)] text-base font-medium text-[var(--primary-foreground)] hover:bg-[var(--primary-hover)] focus:outline-none focus:ring-2 focus:ring-[var(--primary)] focus:ring-offset-2 cursor-pointer"
           >
             {isEditMode ? '수정하기' : '물품 추가'}
           </button>

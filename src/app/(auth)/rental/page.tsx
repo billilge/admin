@@ -96,14 +96,14 @@ export default function RentalPage() {
   };
 
   const rentalStatusColorMap: Record<RentalStatusUpdateRequestRentalStatus, string> = {
-    PENDING: 'bg-[#f2f4f6] text-[#4e5968]',
-    CANCEL: 'bg-[#f2f4f6] text-[#8b95a1]',
-    CONFIRMED: 'bg-[#e7f4ec] text-[#1b8b5a]',
-    REJECTED: 'bg-[#fff0f1] text-[#e93c3c]',
-    RENTAL: 'bg-[#e6eef5] text-[#004A98]',
-    RETURN_PENDING: 'bg-[#fdf6ec] text-[#f5a623]',
-    RETURN_CONFIRMED: 'bg-[#e7f4ec] text-[#1b8b5a]',
-    RETURNED: 'bg-[#e7f4ec] text-[#1b8b5a]',
+    PENDING: 'bg-[var(--warning-bg)] text-[var(--warning)]',
+    CANCEL: 'bg-[var(--secondary)] text-[var(--foreground-subtle)]',
+    CONFIRMED: 'bg-[var(--success-bg)] text-[var(--success)]',
+    REJECTED: 'bg-[var(--error-bg)] text-[var(--error)]',
+    RENTAL: 'bg-[var(--info-bg)] text-[var(--info)]',
+    RETURN_PENDING: 'bg-[var(--warning-bg)] text-[var(--warning)]',
+    RETURN_CONFIRMED: 'bg-[var(--success-bg)] text-[var(--success)]',
+    RETURNED: 'bg-[var(--success-bg)] text-[var(--success)]',
   };
 
   const getStatusLabel = (status: RentalStatusUpdateRequestRentalStatus) =>
@@ -159,7 +159,7 @@ export default function RentalPage() {
 
     try {
       await deleteRental({ rentalHistoryId: rentalToDelete.rentalHistoryId });
-      await queryClient.invalidateQueries(getGetAllRentalHistoriesQueryOptions()); // 리스트 갱신
+      await queryClient.invalidateQueries(getGetAllRentalHistoriesQueryOptions());
       toast.success('삭제되었습니다.');
     } catch (e) {
       console.error(e);
@@ -251,35 +251,26 @@ export default function RentalPage() {
   return (
     <div className="space-y-6">
       <div className="flex flex-col justify-between gap-4 md:flex-row md:items-center">
-        <h1 className="text-2xl font-bold text-[#191f28]">대여/반납 조회</h1>
+        <h1 className="text-2xl font-bold text-[var(--foreground)]">대여/반납 조회</h1>
         <div className="flex items-center gap-3">
           <div className="relative flex-1 md:w-64">
-            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[#8b95a1]" />
+            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[var(--foreground-subtle)]" />
             <input
               type="text"
               placeholder="학번 또는 이름을 입력해 주세요"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="h-10 w-full rounded-md border border-[#e5e8eb] bg-[#f9fbfc] pl-10 pr-4 text-sm text-[#191f28] placeholder:text-[#8b95a1] focus:border-[#004A98] focus:outline-none focus:ring-1 focus:ring-[#004A98]"
+              className="h-10 w-full rounded-lg border border-[var(--border)] bg-[var(--card)] pl-10 pr-4 text-sm text-[var(--foreground)] placeholder:text-[var(--foreground-subtle)] focus:border-[var(--primary)] focus:outline-none focus:ring-1 focus:ring-[var(--primary)]"
             />
           </div>
           <div className="relative" ref={filterDropdownRef}>
-            {/*<button*/}
-            {/*  className="flex h-10 shrink-0 items-center gap-1 rounded-md border border-[#e5e8eb] bg-white px-4 text-sm font-medium text-[#4e5968] hover:bg-[#f2f4f6]"*/}
-            {/*  onClick={() => setShowFilterDropdown(!showFilterDropdown)}*/}
-            {/*>*/}
-            {/*  <Filter className="h-4 w-4" />*/}
-            {/*  <span className="hidden sm:inline">{getFilterLabel()}</span>*/}
-            {/*  <ChevronDown className="h-4 w-4" />*/}
-            {/*</button>*/}
-
             {showFilterDropdown && (
-              <div className="absolute right-0 z-10 mt-1 w-40 rounded-md border border-[#e5e8eb] bg-white py-1 shadow-lg">
+              <div className="absolute right-0 z-10 mt-1 w-40 rounded-lg border border-[var(--border)] bg-[var(--card)] py-1 shadow-lg">
                 <button
                   className={`flex w-full items-center px-4 py-2 text-left text-sm ${
                     currentFilter === 'none'
-                      ? 'bg-[#f9fbfc] text-[#004A98]'
-                      : 'text-[#4e5968] hover:bg-[#f9fbfc]'
+                      ? 'bg-[var(--background-hover)] text-[var(--primary)]'
+                      : 'text-[var(--foreground-muted)] hover:bg-[var(--background-hover)]'
                   }`}
                   onClick={() => handleFilterChange('none')}
                 >
@@ -288,8 +279,8 @@ export default function RentalPage() {
                 <button
                   className={`flex w-full items-center px-4 py-2 text-left text-sm ${
                     currentFilter === 'item'
-                      ? 'bg-[#f9fbfc] text-[#004A98]'
-                      : 'text-[#4e5968] hover:bg-[#f9fbfc]'
+                      ? 'bg-[var(--background-hover)] text-[var(--primary)]'
+                      : 'text-[var(--foreground-muted)] hover:bg-[var(--background-hover)]'
                   }`}
                   onClick={() => handleFilterChange('item')}
                 >
@@ -298,8 +289,8 @@ export default function RentalPage() {
                 <button
                   className={`flex w-full items-center px-4 py-2 text-left text-sm ${
                     currentFilter === 'rentalDate'
-                      ? 'bg-[#f9fbfc] text-[#004A98]'
-                      : 'text-[#4e5968] hover:bg-[#f9fbfc]'
+                      ? 'bg-[var(--background-hover)] text-[var(--primary)]'
+                      : 'text-[var(--foreground-muted)] hover:bg-[var(--background-hover)]'
                   }`}
                   onClick={() => handleFilterChange('rentalDate')}
                 >
@@ -308,8 +299,8 @@ export default function RentalPage() {
                 <button
                   className={`flex w-full items-center px-4 py-2 text-left text-sm ${
                     currentFilter === 'returnDate'
-                      ? 'bg-[#f9fbfc] text-[#004A98]'
-                      : 'text-[#4e5968] hover:bg-[#f9fbfc]'
+                      ? 'bg-[var(--background-hover)] text-[var(--primary)]'
+                      : 'text-[var(--foreground-muted)] hover:bg-[var(--background-hover)]'
                   }`}
                   onClick={() => handleFilterChange('returnDate')}
                 >
@@ -320,7 +311,7 @@ export default function RentalPage() {
           </div>
           <button
             onClick={() => setIsAddModalOpen(true)}
-            className="flex h-10 shrink-0 items-center gap-1 rounded-md bg-[#004A98] px-4 text-sm font-medium text-white hover:bg-[#003a7a] focus:outline-none focus:ring-2 focus:ring-[#004A98] focus:ring-offset-2 cursor-pointer"
+            className="flex h-10 shrink-0 items-center gap-1 rounded-lg bg-[var(--primary)] px-4 text-sm font-medium text-[var(--primary-foreground)] hover:bg-[var(--primary-hover)] focus:outline-none focus:ring-2 focus:ring-[var(--primary)] focus:ring-offset-2 cursor-pointer"
           >
             <Plus className="h-4 w-4" />
             <span className="hidden sm:inline">대여 추가하기</span>
@@ -328,75 +319,75 @@ export default function RentalPage() {
           </button>
         </div>
       </div>
-      <div className="overflow-hidden rounded-md border border-[#e5e8eb] bg-white shadow-sm">
+      <div className="overflow-hidden rounded-xl border border-[var(--border)] bg-[var(--card)]">
         <div className="overflow-x-auto">
           <table className="w-full border-collapse">
             <thead>
-              <tr className="border-b border-[#e5e8eb] bg-[#f9fbfc]">
-                <th className="whitespace-nowrap px-6 py-3 text-left text-sm font-medium text-[#4e5968]">
+              <tr className="border-b border-[var(--border)] bg-[var(--secondary)]">
+                <th className="whitespace-nowrap px-4 py-3.5 text-center text-xs font-semibold uppercase tracking-wider text-[var(--foreground-muted)] w-16">
+                  No
+                </th>
+                <th className="whitespace-nowrap px-4 py-3.5 text-left text-xs font-semibold uppercase tracking-wider text-[var(--foreground-muted)]">
                   학생명
                 </th>
-                <th className="whitespace-nowrap px-6 py-3 text-left text-sm font-medium text-[#4e5968]">
+                <th className="whitespace-nowrap px-4 py-3.5 text-left text-xs font-semibold uppercase tracking-wider text-[var(--foreground-muted)]">
                   학번
                 </th>
-                <th className="whitespace-nowrap px-6 py-3 text-left text-sm font-medium text-[#4e5968]">
+                <th className="whitespace-nowrap px-4 py-3.5 text-left text-xs font-semibold uppercase tracking-wider text-[var(--foreground-muted)]">
                   물품명
                 </th>
-                <th className="whitespace-nowrap px-6 py-3 text-left text-sm font-medium text-[#4e5968]">
+                <th className="whitespace-nowrap px-4 py-3.5 text-left text-xs font-semibold uppercase tracking-wider text-[var(--foreground-muted)]">
                   대여일
                 </th>
-                <th className="whitespace-nowrap px-6 py-3 text-left text-sm font-medium text-[#4e5968]">
+                <th className="whitespace-nowrap px-4 py-3.5 text-left text-xs font-semibold uppercase tracking-wider text-[var(--foreground-muted)]">
                   반납일
                 </th>
-                <th className="whitespace-nowrap px-6 py-3 text-left text-sm font-medium text-[#4e5968]">
+                <th className="whitespace-nowrap px-4 py-3.5 text-left text-xs font-semibold uppercase tracking-wider text-[var(--foreground-muted)]">
                   상태
                 </th>
-                <th className="whitespace-nowrap px-6 py-3 text-left text-sm font-medium text-[#4e5968]">
+                <th className="whitespace-nowrap px-4 py-3.5 text-center text-xs font-semibold uppercase tracking-wider text-[var(--foreground-muted)] w-16">
                   관리
                 </th>
               </tr>
             </thead>
-            <tbody>
+            <tbody className="divide-y divide-[var(--border-muted)]">
               {isLoading ? (
-                <TableSkeleton columns={7} rows={10} />
+                <TableSkeleton columns={8} rows={10} />
               ) : (
-                filteredAndSortedRentals().map((rental) => (
+                filteredAndSortedRentals().map((rental, index) => (
                   <tr
                     key={rental.rentalHistoryId}
-                    className="border-b border-[#e5e8eb] last:border-b-0 hover:bg-[#f9fbfc]"
+                    className="transition-colors hover:bg-[var(--background-hover)]"
                   >
-                    <td className="whitespace-nowrap px-6 py-4 text-sm text-[#191f28]">
+                    <td className="whitespace-nowrap px-4 py-4 text-center text-sm font-medium text-[var(--foreground-muted)]">
+                      {(currentPage - 1) * 10 + index + 1}
+                    </td>
+                    <td className="whitespace-nowrap px-4 py-4 text-sm font-medium text-[var(--foreground)]">
                       {rental.member.name}
                     </td>
-                    <td className="whitespace-nowrap px-6 py-4 text-sm text-[#191f28]">
+                    <td className="whitespace-nowrap px-4 py-4 text-sm text-[var(--foreground-muted)]">
                       {rental.member.studentId}
                     </td>
-                    <td className="whitespace-nowrap px-6 py-4 text-sm text-[#191f28]">
+                    <td className="whitespace-nowrap px-4 py-4 text-sm text-[var(--foreground)]">
                       {rental.itemName}
                     </td>
-                    <td className="whitespace-nowrap px-6 py-4 text-sm text-[#6b7684]">
-                      <div className="flex items-center gap-1">
-                        <Calendar className="h-3 w-3" />
+                    <td className="whitespace-nowrap px-4 py-4 text-sm text-[var(--foreground-muted)]">
+                      <div className="flex items-center gap-1.5">
+                        <Calendar className="h-3.5 w-3.5" />
                         <span>{formatDate(rental.rentAt)}</span>
                       </div>
                     </td>
-                    <td className="whitespace-nowrap px-6 py-4 text-sm text-[#6b7684]">
+                    <td className="whitespace-nowrap px-4 py-4 text-sm text-[var(--foreground-muted)]">
                       {rental.returnedAt ? (
-                        <div className="flex items-center gap-1">
-                          <Clock className="h-3 w-3" />
+                        <div className="flex items-center gap-1.5">
+                          <Clock className="h-3.5 w-3.5" />
                           <span>{formatDate(rental.returnedAt)}</span>
                         </div>
                       ) : (
-                        <span className="text-[#8b95a1]">-</span>
+                        <span className="text-[var(--foreground-subtle)]">-</span>
                       )}
                     </td>
-                    {/*<td className="whitespace-nowrap px-6 py-4 text-sm text-[#6b7684]">*/}
-                    {/*  <div className="flex items-center gap-1">*/}
-                    {/*    <User className="h-3 w-3" />*/}
-                    {/*    <span>{rental.staff}</span>*/}
-                    {/*  </div>*/}
-                    {/*</td>*/}
-                    <td className="whitespace-nowrap px-6 py-4 text-sm ">
+                    <td className="whitespace-nowrap px-4 py-4 text-sm">
                       <div
                         className="relative"
                         ref={(el) => {
@@ -408,7 +399,7 @@ export default function RentalPage() {
                             statusButtonRefs.current[rental.rentalHistoryId] = el;
                           }}
                           onClick={() => handleStatusClick(rental.rentalHistoryId)}
-                          className={`inline-flex items-center gap-1 rounded-md px-2 py-1 text-xs font-medium cursor-pointer ${getStatusColor(
+                          className={`inline-flex items-center gap-1 rounded-full px-3 py-1 text-xs font-medium cursor-pointer ${getStatusColor(
                             rental.rentalStatus,
                           )}`}
                         >
@@ -417,10 +408,10 @@ export default function RentalPage() {
                         </button>
                       </div>
                     </td>
-                    <td className="whitespace-nowrap px-6 py-4 text-sm">
+                    <td className="whitespace-nowrap px-4 py-4 text-center">
                       <button
                         onClick={() => handleDeleteClick(rental)}
-                        className="rounded-md p-1 text-[#8b95a1] hover:bg-[#fff0f1] hover:text-[#e93c3c] cursor-pointer"
+                        className="rounded-lg p-1.5 text-[var(--foreground-subtle)] hover:bg-[var(--error-bg)] hover:text-[var(--error)] cursor-pointer transition-colors"
                       >
                         <Trash2 className="h-4 w-4" />
                       </button>
@@ -432,10 +423,9 @@ export default function RentalPage() {
           </table>
         </div>
       </div>
-      {/*TODO: 드롭다운 길이에 따라 표 넓이 바뀌는 것 수정 필요*/}
       {openStatusDropdown !== null && (
         <div
-          className="fixed z-50 w-32 rounded-md border border-[#e5e8eb] bg-white py-1 shadow-lg"
+          className="fixed z-50 w-32 rounded-lg border border-[var(--border)] bg-[var(--card)] py-1 shadow-lg"
           style={{
             top: `${dropdownPosition.top}px`,
             left: `${dropdownPosition.left}px`,
@@ -450,8 +440,8 @@ export default function RentalPage() {
               className={`flex w-full items-center px-3 py-2 text-left text-xs cursor-pointer ${
                 rentals.find((r) => r.rentalHistoryId === openStatusDropdown)?.rentalStatus ===
                 status.value
-                  ? 'bg-[#f9fbfc] text-[#004A98] font-medium'
-                  : 'text-[#4e5968] hover:bg-[#f9fbfc]'
+                  ? 'bg-[var(--background-hover)] text-[var(--primary)] font-medium'
+                  : 'text-[var(--foreground-muted)] hover:bg-[var(--background-hover)]'
               }`}
               onClick={() => handleStatusChange(openStatusDropdown, status.value)}
             >
@@ -462,30 +452,43 @@ export default function RentalPage() {
           ))}
         </div>
       )}
-      <div className="flex items-center justify-between">
-        <div></div>
-        <div className="flex items-center gap-2">
+      <div className="flex items-center justify-center">
+        <div className="flex items-center gap-1">
           <button
             onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
             disabled={currentPage === 1}
-            className="flex h-8 w-8 items-center justify-center rounded-md border border-[#e5e8eb] bg-white text-[#4e5968] disabled:opacity-50"
+            className="flex h-8 w-8 items-center justify-center rounded-md text-[var(--foreground-muted)] hover:bg-[var(--background-hover)] disabled:opacity-30 disabled:hover:bg-transparent transition-colors"
           >
             <ChevronLeft className="h-4 w-4" />
           </button>
 
-          <div className="text-sm text-[#8b95a1]">
-            {currentPage} / {totalPages}
-          </div>
+          {(() => {
+            const pageGroup = Math.floor((currentPage - 1) / 10);
+            const startPage = pageGroup * 10 + 1;
+            const endPage = Math.min(startPage + 9, totalPages);
+            return Array.from({ length: endPage - startPage + 1 }, (_, i) => startPage + i).map((page) => (
+              <button
+                key={page}
+                onClick={() => setCurrentPage(page)}
+                className={`flex h-8 w-8 items-center justify-center rounded-md text-sm font-medium transition-colors ${
+                  currentPage === page
+                    ? 'bg-[var(--primary)] text-white'
+                    : 'text-[var(--foreground-muted)] hover:bg-[var(--background-hover)]'
+                }`}
+              >
+                {page}
+              </button>
+            ));
+          })()}
 
           <button
             onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
             disabled={currentPage === totalPages}
-            className="flex h-8 w-8 items-center justify-center rounded-md border border-[#e5e8eb] bg-white text-[#4e5968] disabled:opacity-50"
+            className="flex h-8 w-8 items-center justify-center rounded-md text-[var(--foreground-muted)] hover:bg-[var(--background-hover)] disabled:opacity-30 disabled:hover:bg-transparent transition-colors"
           >
             <ChevronRight className="h-4 w-4" />
           </button>
         </div>
-        <div></div>
       </div>
       <RentalAddModal isOpen={isAddModalOpen} onClose={() => setIsAddModalOpen(false)} />
       {rentalToDelete && (

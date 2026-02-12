@@ -1,85 +1,86 @@
 'use client';
 
 import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 import type { ReactNode } from 'react';
+import {
+  Package,
+  Users,
+  FileText,
+  UserCog,
+  Monitor,
+  Settings,
+  LogOut,
+} from 'lucide-react';
 import useAuthRedirect from '@/hooks/useAuthRedirect';
 
 type AuthLayoutProps = {
   children: ReactNode;
 };
 
+const navItems = [
+  { name: '대여/반납 조회', href: '/rental', icon: FileText },
+  { name: '물품 관리', href: '/item', icon: Package },
+  { name: '학생회비 납부자 관리', href: '/payer', icon: Users },
+  { name: '관리자 관리', href: '/admin', icon: UserCog },
+  { name: '디스플레이 관리', href: '/display', icon: Monitor },
+  { name: '설정 관리', href: '/setting', icon: Settings },
+];
+
 export default function AuthLayout({ children }: AuthLayoutProps) {
-  useAuthRedirect(); // 진입 시 토큰 유효성 판단 후 로그인 페이지 혹은 메인 페이지로 이동
+  useAuthRedirect();
+  const pathname = usePathname();
+
   return (
-    <div className="min-h-screen bg-[#f9fbfc]">
-      <header className="sticky top-0 z-10 border-b border-[#e5e8eb] bg-white shadow-sm">
-        <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 md:px-6">
-          <div className="flex items-center gap-2">
-            <Link
-              href="/"
-              className="flex items-center gap-2 rounded-md px-3 py-2 text-lg font-bold text-[#191f28] hover:bg-[#f2f4f6]"
-            >
-              <span className="text-[#004A98]">빌릴게</span>
-              <span className="hidden md:inline">복지물품 대여 시스템</span>
-            </Link>
-          </div>
-
-          <nav className="hidden items-center gap-1 md:flex md:gap-2">
-            <Link
-              href="/rental"
-              className="rounded-md px-3 py-2 text-sm font-medium text-[#4e5968] hover:bg-[#f2f4f6] hover:text-[#191f28]"
-            >
-              대여/반납 조회
-            </Link>
-            <Link
-              href="/admin"
-              className="rounded-md px-3 py-2 text-sm font-medium text-[#4e5968] hover:bg-[#f2f4f6] hover:text-[#191f28]"
-            >
-              관리자 관리
-            </Link>
-            <Link
-              href="/payer"
-              className="rounded-md px-3 py-2 text-sm font-medium text-[#4e5968] hover:bg-[#f2f4f6] hover:text-[#191f28]"
-            >
-              납부자 관리
-            </Link>
-            <Link
-              href="/item"
-              className="rounded-md px-3 py-2 text-sm font-medium text-[#4e5968] hover:bg-[#f2f4f6] hover:text-[#191f28]"
-            >
-              물품 관리
-            </Link>
-            <Link
-              href="/display"
-              className="rounded-md px-3 py-2 text-sm font-medium text-[#4e5968] hover:bg-[#f2f4f6] hover:text-[#191f28]"
-            >
-              디스플레이 관리
-            </Link>
-            <Link
-              href="/setting"
-              className="rounded-md px-3 py-2 text-sm font-medium text-[#4e5968] hover:bg-[#f2f4f6] hover:text-[#191f28]"
-            >
-              설정 관리
-            </Link>
-            <Link
-              href="/login"
-              className="rounded-md px-3 py-2 text-sm font-medium text-[#4e5968] hover:bg-[#f2f4f6] hover:text-[#191f28]"
-            >
-              로그아웃
-            </Link>
-          </nav>
-          <div className="flex md:hidden">
-            <Link
-              href="/login"
-              className="rounded-md px-3 py-2 text-sm font-medium text-[#4e5968] hover:bg-[#f2f4f6] hover:text-[#191f28]"
-            >
-              로그아웃
-            </Link>
-          </div>
+    <div className="flex min-h-screen bg-[var(--background)]">
+      {/* Sidebar */}
+      <aside className="fixed left-0 top-0 z-20 flex h-full w-64 flex-col border-r border-[var(--border)] bg-[var(--sidebar)]">
+        {/* Logo */}
+        <div className="flex h-16 items-center border-b border-[var(--border)] px-6">
+          <Link href="/rental" className="flex items-center gap-2">
+            <span className="text-xl font-bold text-[var(--primary)]">빌릴게</span>
+            <span className="text-sm text-[var(--sidebar-muted)]">관리자 시스템</span>
+          </Link>
         </div>
-      </header>
 
-      <main className="mx-auto max-w-7xl px-4 py-8 pb-20 md:px-6 md:pb-8">{children}</main>
+        {/* Navigation */}
+        <nav className="flex-1 overflow-y-auto py-4">
+          <ul className="space-y-1 px-3">
+            {navItems.map((item) => {
+              const isActive = pathname === item.href;
+              return (
+                <li key={item.href}>
+                  <Link
+                    href={item.href}
+                    className={`flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors ${
+                      isActive
+                        ? 'bg-[var(--sidebar-active)] text-[var(--primary)]'
+                        : 'text-[var(--foreground-muted)] hover:bg-[var(--sidebar-hover)] hover:text-[var(--foreground)]'
+                    }`}
+                  >
+                    <item.icon className="h-5 w-5" />
+                    {item.name}
+                  </Link>
+                </li>
+              );
+            })}
+          </ul>
+        </nav>
+
+        {/* Logout */}
+        <div className="border-t border-[var(--border)] p-3">
+          <Link
+            href="/login"
+            className="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-[var(--foreground-muted)] hover:bg-[var(--sidebar-hover)] hover:text-[var(--error)]"
+          >
+            <LogOut className="h-5 w-5" />
+            로그아웃
+          </Link>
+        </div>
+      </aside>
+
+      {/* Main Content */}
+      <main className="ml-64 flex-1 p-8">{children}</main>
     </div>
   );
 }

@@ -13,12 +13,12 @@ export default function DeleteItemModal({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
-      <div className="w-full max-w-md rounded-md bg-white shadow-[0_1px_3px_rgba(0,0,0,0.1)]">
-        <div className="flex items-center justify-between border-b border-[#e5e8eb] px-6 py-4">
-          <h2 className="text-xl font-bold text-[#191f28]">물품 삭제</h2>
+      <div className="w-full max-w-md rounded-lg bg-[var(--popover)] shadow-xl">
+        <div className="flex items-center justify-between border-b border-[var(--border)] px-6 py-4">
+          <h2 className="text-xl font-bold text-[var(--foreground)]">물품 삭제</h2>
           <button
             onClick={onClose}
-            className="rounded-full p-1 text-[#8b95a1] hover:bg-[#f2f4f6] hover:text-[#4e5968] cursor-pointer"
+            className="rounded-full p-1 text-[var(--foreground-subtle)] hover:bg-[var(--background-hover)] hover:text-[var(--foreground-muted)] cursor-pointer"
           >
             <svg
               xmlns="http://www.w3.org/2000/svg"
@@ -37,12 +37,12 @@ export default function DeleteItemModal({
         </div>
 
         <div className="px-6 py-4">
-          <p className="text-sm text-[#4e5968]">
-            정말로 <span className="font-medium text-[#191f28]">{itemName}</span>을(를)
+          <p className="text-sm text-[var(--foreground-muted)]">
+            정말로 <span className="font-medium text-[var(--foreground)]">{itemName}</span>을(를)
             삭제하시겠습니까?
           </p>
           {hasRentedItems && (
-            <p className="mt-2 text-sm text-[#e93c3c]">
+            <p className="mt-2 text-sm text-[var(--error)]">
               <svg
                 xmlns="http://www.w3.org/2000/svg"
                 viewBox="0 0 24 24"
@@ -60,19 +60,19 @@ export default function DeleteItemModal({
               해당 물품은 현재 대여 중인 항목이 있습니다.
             </p>
           )}
-          <p className="mt-2 text-sm text-[#4e5968]">삭제 후에는 복구할 수 없습니다.</p>
+          <p className="mt-2 text-sm text-[var(--foreground-muted)]">삭제 후에는 복구할 수 없습니다.</p>
         </div>
 
-        <div className="flex items-center justify-end gap-2 border-t border-[#e5e8eb] px-6 py-4">
+        <div className="flex items-center justify-end gap-2 border-t border-[var(--border)] px-6 py-4">
           <button
             onClick={onClose}
-            className="rounded-md px-4 py-2 text-sm font-medium text-[#4e5968] hover:bg-[#f2f4f6] focus:outline-none focus:ring-2 focus:ring-[#d1d6db] focus:ring-offset-2 cursor-pointer"
+            className="rounded-lg px-4 py-2 text-sm font-medium text-[var(--foreground-muted)] hover:bg-[var(--background-hover)] focus:outline-none focus:ring-2 focus:ring-[var(--border)] focus:ring-offset-2 cursor-pointer"
           >
             취소
           </button>
           <button
             onClick={onDelete}
-            className="rounded-md bg-[#e93c3c] px-4 py-2 text-sm font-medium text-white hover:bg-[#c42b2b] focus:outline-none focus:ring-2 focus:ring-[#e93c3c] focus:ring-offset-2 cursor-pointer"
+            className="rounded-lg bg-[var(--error)] px-4 py-2 text-sm font-medium text-white hover:opacity-90 focus:outline-none focus:ring-2 focus:ring-[var(--error)] focus:ring-offset-2 cursor-pointer"
           >
             삭제
           </button>

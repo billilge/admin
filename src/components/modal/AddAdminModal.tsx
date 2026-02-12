@@ -1,7 +1,5 @@
 'use client';
 
-// TODO : 이미 관리자로 등록되어 있는 사람을 중복 추가했을 때 예외 처리 필요
-
 import { X, Check } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { useGetAllMembers } from '@/api-client';
@@ -73,16 +71,15 @@ export default function AddAdminModal({ isOpen, onClose, onApply }: AddAdminModa
 
   if (!isOpen) return null;
 
-  // 조건부 렌더링 분리
   const renderTable = () => {
     if (isLoading) {
-      return <p className="mt-4 text-center text-sm text-gray-500">불러오는 중...</p>;
+      return <p className="mt-4 text-center text-sm text-[var(--foreground-subtle)]">불러오는 중...</p>;
     }
     if (isError || !memberData) {
-      return <p className="mt-4 text-center text-sm text-gray-500">검색어를 입력해주세요.</p>;
+      return <p className="mt-4 text-center text-sm text-[var(--foreground-subtle)]">검색어를 입력해주세요.</p>;
     }
     if (memberData.members.length === 0) {
-      return <p className="mt-4 text-center text-sm text-gray-500">검색 결과가 없습니다.</p>;
+      return <p className="mt-4 text-center text-sm text-[var(--foreground-subtle)]">검색 결과가 없습니다.</p>;
     }
 
     return (
@@ -90,15 +87,15 @@ export default function AddAdminModal({ isOpen, onClose, onApply }: AddAdminModa
         <thead>
           <tr>
             <th className="w-12 pb-3"></th>
-            <th className="pb-3 pl-2 text-left text-sm font-medium text-[#4e5968]">이름</th>
-            <th className="pb-3 text-left text-sm font-medium text-[#4e5968]">학번</th>
+            <th className="pb-3 pl-2 text-left text-sm font-medium text-[var(--foreground-muted)]">이름</th>
+            <th className="pb-3 text-left text-sm font-medium text-[var(--foreground-muted)]">학번</th>
           </tr>
         </thead>
         <tbody>
           {memberData.members.map((student) => {
             const isSelected = selectedIds.has(student.memberId);
             return (
-              <tr key={student.memberId} className="border-b border-[#f2f4f6] last:border-b-0">
+              <tr key={student.memberId} className="border-b border-[var(--secondary)] last:border-b-0">
                 <td className="py-3 pr-2">
                   <div className="flex justify-center items-center">
                     <button
@@ -106,16 +103,16 @@ export default function AddAdminModal({ isOpen, onClose, onApply }: AddAdminModa
                       onClick={() => toggleStudent(student.memberId)}
                       className={`flex h-5 w-5 items-center justify-center rounded border-2 transition-all duration-150 cursor-pointer ${
                         isSelected
-                          ? 'border-[#004A98] bg-[#004A98]'
-                          : 'border-[#d1d6db] bg-white hover:border-[#004A98]'
+                          ? 'border-[var(--primary)] bg-[var(--primary)]'
+                          : 'border-[var(--border)] bg-[var(--card)] hover:border-[var(--primary)]'
                       }`}
                     >
                       {isSelected && <Check className="h-3.5 w-3.5 text-white stroke-[3]" />}
                     </button>
                   </div>
                 </td>
-                <td className="py-3 pl-2 text-sm text-[#191f28]">{student.name}</td>
-                <td className="py-3 text-left text-sm text-[#6b7684]">{student.studentId}</td>
+                <td className="py-3 pl-2 text-sm text-[var(--foreground)]">{student.name}</td>
+                <td className="py-3 text-left text-sm text-[var(--foreground-muted)]">{student.studentId}</td>
               </tr>
             );
           })}
@@ -127,14 +124,14 @@ export default function AddAdminModal({ isOpen, onClose, onApply }: AddAdminModa
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
       <div
-        className="w-full max-w-md overflow-hidden rounded-md bg-white shadow-md"
+        className="w-full max-w-md overflow-hidden rounded-lg bg-[var(--popover)] shadow-xl"
         style={{ maxHeight: 'calc(100vh - 40px)' }}
       >
-        <div className="flex justify-between items-center border-b border-[#e5e8eb] px-6 py-4">
-          <h2 className="text-xl font-bold text-[#191f28]">관리자 추가하기</h2>
+        <div className="flex justify-between items-center border-b border-[var(--border)] px-6 py-4">
+          <h2 className="text-xl font-bold text-[var(--foreground)]">관리자 추가하기</h2>
           <button
             onClick={onClose}
-            className="rounded-full p-1 text-[#8b95a1] hover:bg-[#f2f4f6] hover:text-[#4e5968]"
+            className="rounded-full p-1 text-[var(--foreground-subtle)] hover:bg-[var(--background-hover)] hover:text-[var(--foreground-muted)]"
           >
             <X className="h-5 w-5" />
           </button>
@@ -147,12 +144,12 @@ export default function AddAdminModal({ isOpen, onClose, onApply }: AddAdminModa
               value={inputKeyword}
               onChange={(e) => setInputKeyword(e.target.value)}
               onKeyDown={handleKeyDown}
-              className="w-full rounded-md border px-3 py-2"
+              className="w-full rounded-lg border border-[var(--border)] bg-[var(--input)] px-3 py-2 text-[var(--foreground)] placeholder:text-[var(--foreground-subtle)] focus:border-[var(--primary)] focus:outline-none"
               placeholder="이름 또는 학번"
             />
             <button
               onClick={handleSearch}
-              className="rounded-md bg-[#004A98] px-4 text-sm font-medium text-white hover:bg-[#003a7a] whitespace-nowrap"
+              className="rounded-lg bg-[var(--primary)] px-4 text-sm font-medium text-[var(--primary-foreground)] hover:bg-[var(--primary-hover)] whitespace-nowrap"
             >
               검색
             </button>
@@ -160,10 +157,10 @@ export default function AddAdminModal({ isOpen, onClose, onApply }: AddAdminModa
           {renderTable()}
         </div>
 
-        <div className="border-t border-[#e5e8eb] px-6 py-4">
+        <div className="border-t border-[var(--border)] px-6 py-4">
           <button
             onClick={handleApply}
-            className="h-12 w-full rounded-md bg-[#004A98] text-base font-medium text-white hover:bg-[#003a7a] focus:outline-none focus:ring-2 focus:ring-[#004A98] focus:ring-offset-2"
+            className="h-12 w-full rounded-lg bg-[var(--primary)] text-base font-medium text-[var(--primary-foreground)] hover:bg-[var(--primary-hover)] focus:outline-none focus:ring-2 focus:ring-[var(--primary)] focus:ring-offset-2"
           >
             적용하기
           </button>
