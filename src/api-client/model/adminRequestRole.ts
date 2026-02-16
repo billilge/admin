@@ -7,13 +7,13 @@
  */
 
 /**
- * 회원 권한
+ * 관리자 역할
  */
-export type MemberDetailRole = typeof MemberDetailRole[keyof typeof MemberDetailRole];
+export type AdminRequestRole = typeof AdminRequestRole[keyof typeof AdminRequestRole];
 
 
 // eslint-disable-next-line @typescript-eslint/no-redeclare
-export const MemberDetailRole = {
+export const AdminRequestRole = {
   USER: 'USER',
   ADMIN: 'ADMIN',
   WORKER: 'WORKER',

@@ -5,11 +5,10 @@
  * 국민대학교 소프트웨어융합대학 복지물품 대여 서비스
  * OpenAPI spec version: v1
  */
-import type { AdminRequestRole } from './adminRequestRole';
 
-export interface AdminRequest {
-  /** 회원 ID 목록 */
-  memberIds: number[];
-  /** 관리자 역할 */
-  role: AdminRequestRole;
+export interface DisplayCalendarScheduleRequest {
+  /** 일정 날짜 */
+  date: string;
+  /** 일정 목록 */
+  schedules: string[];
 }

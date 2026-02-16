@@ -32,8 +32,10 @@ export type AddPayerModalProps = {
   onApply: (payers: Payer[]) => void;
 };
 
+export type AdminRole = 'ADMIN' | 'GA' | 'WORKER';
+
 export type AddAdminModalProps = {
   isOpen: boolean;
   onClose: () => void;
-  onApply: (selectedStudents: Student[]) => void;
+  onApply: (selectedStudents: Student[], role: AdminRole) => void;
 };

@@ -7,6 +7,7 @@
  */
 
 export interface AdminMemberDetail {
+  /** 관리자 회원 ID */
   memberId: number;
   /** 관리자 이름 */
   name: string;

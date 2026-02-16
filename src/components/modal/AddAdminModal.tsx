@@ -3,16 +3,29 @@
 import { X, Check } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { useGetAllMembers } from '@/api-client';
-import { AddAdminModalProps } from '@/types/modal';
+import { AddAdminModalProps, AdminRole } from '@/types/modal';
+
+const roleOptions: { value: AdminRole; label: string }[] = [
+  { value: 'ADMIN', label: '관리자' },
+  { value: 'GA', label: '총무부' },
+  { value: 'WORKER', label: '근무자' },
+];
 
 export default function AddAdminModal({ isOpen, onClose, onApply }: AddAdminModalProps) {
   const [currentPage, setCurrentPage] = useState(1);
   const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set());
+  const [selectedRole, setSelectedRole] = useState<AdminRole>('ADMIN');
   const [inputKeyword, setInputKeyword] = useState('');
   const [searchKeyword, setSearchKeyword] = useState('');
 
   useEffect(() => {
     document.body.style.overflow = isOpen ? 'hidden' : 'unset';
+    if (!isOpen) {
+      setSelectedIds(new Set());
+      setSelectedRole('ADMIN');
+      setInputKeyword('');
+      setSearchKeyword('');
+    }
     return () => {
       document.body.style.overflow = 'unset';
     };
@@ -45,7 +58,7 @@ export default function AddAdminModal({ isOpen, onClose, onApply }: AddAdminModa
         selected: true,
       }));
 
-    onApply(selectedStudents);
+    onApply(selectedStudents, selectedRole);
   };
 
   const {
@@ -131,13 +144,35 @@ export default function AddAdminModal({ isOpen, onClose, onApply }: AddAdminModa
           <h2 className="text-xl font-bold text-[var(--foreground)]">관리자 추가하기</h2>
           <button
             onClick={onClose}
-            className="rounded-full p-1 text-[var(--foreground-subtle)] hover:bg-[var(--background-hover)] hover:text-[var(--foreground-muted)]"
+            className="rounded-full p-1 text-[var(--foreground-subtle)] hover:bg-[var(--background-hover)] hover:text-[var(--foreground-muted)] cursor-pointer"
           >
             <X className="h-5 w-5" />
           </button>
         </div>
 
-        <div className="max-h-[350px] overflow-y-auto px-6 py-4">
+        <div className="max-h-[400px] overflow-y-auto px-6 py-4">
+          {/* 역할 선택 */}
+          <div className="mb-4">
+            <label className="mb-2 block text-sm font-medium text-[var(--foreground-muted)]">역할</label>
+            <div className="flex gap-2">
+              {roleOptions.map((option) => (
+                <button
+                  key={option.value}
+                  type="button"
+                  onClick={() => setSelectedRole(option.value)}
+                  className={`cursor-pointer rounded-lg border px-4 py-2 text-sm font-medium transition-colors ${
+                    selectedRole === option.value
+                      ? 'border-[var(--primary)] bg-[var(--primary)] text-white'
+                      : 'border-[var(--border)] bg-[var(--card)] text-[var(--foreground-muted)] hover:border-[var(--primary)] hover:text-[var(--foreground)]'
+                  }`}
+                >
+                  {option.label}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* 회원 검색 */}
           <div className="flex gap-2">
             <input
               type="text"
@@ -149,7 +184,7 @@ export default function AddAdminModal({ isOpen, onClose, onApply }: AddAdminModa
             />
             <button
               onClick={handleSearch}
-              className="rounded-lg bg-[var(--primary)] px-4 text-sm font-medium text-[var(--primary-foreground)] hover:bg-[var(--primary-hover)] whitespace-nowrap"
+              className="rounded-lg bg-[var(--primary)] px-4 text-sm font-medium text-[var(--primary-foreground)] hover:bg-[var(--primary-hover)] whitespace-nowrap cursor-pointer"
             >
               검색
             </button>
@@ -160,7 +195,8 @@ export default function AddAdminModal({ isOpen, onClose, onApply }: AddAdminModa
         <div className="border-t border-[var(--border)] px-6 py-4">
           <button
             onClick={handleApply}
-            className="h-12 w-full rounded-lg bg-[var(--primary)] text-base font-medium text-[var(--primary-foreground)] hover:bg-[var(--primary-hover)] focus:outline-none focus:ring-2 focus:ring-[var(--primary)] focus:ring-offset-2"
+            disabled={selectedIds.size === 0}
+            className="h-12 w-full rounded-lg bg-[var(--primary)] text-base font-medium text-[var(--primary-foreground)] hover:bg-[var(--primary-hover)] focus:outline-none focus:ring-2 focus:ring-[var(--primary)] focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
           >
             적용하기
           </button>

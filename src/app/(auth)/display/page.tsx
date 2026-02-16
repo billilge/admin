@@ -1,5 +1,6 @@
 'use client';
 
+import { useQueryClient } from '@tanstack/react-query';
 import {
   ChevronLeft,
   ChevronRight,
@@ -10,101 +11,195 @@ import {
   Edit,
   Trash2,
   Save,
+  Upload,
 } from 'lucide-react';
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import toast from 'react-hot-toast';
-import { DisplayCalendarSchedule, DisplayPoster } from '@/types/display';
-
-const mockSchedules: DisplayCalendarSchedule[] = [
-  { id: 1, date: '2025-01-06', schedules: ['학과 MT 신청 시작', '동아리 모집'] },
-  { id: 2, date: '2025-01-10', schedules: ['중간고사 기간 시작'] },
-  { id: 3, date: '2025-01-15', schedules: ['학과 세미나', '취업 특강', '교수님 면담'] },
-  { id: 4, date: '2025-01-20', schedules: ['중간고사 종료', '성적 입력 시작'] },
-  { id: 5, date: '2025-01-25', schedules: ['학과 엠티', '신입생 환영회', '동아리 발표', '간식 배부'] },
-];
-
-const mockPosters: DisplayPoster[] = [
-  {
-    id: 1,
-    title: '2025 신입생 환영회',
-    imageUrl: 'https://placehold.co/400x600/004A98/ffffff?text=신입생+환영회',
-    createdAt: '2025-01-05',
-    isActive: true,
-  },
-  {
-    id: 2,
-    title: '학과 MT 안내',
-    imageUrl: 'https://placehold.co/400x600/1b8b5a/ffffff?text=학과+MT',
-    createdAt: '2025-01-03',
-    isActive: true,
-  },
-  {
-    id: 3,
-    title: '취업 특강 시리즈',
-    imageUrl: 'https://placehold.co/400x600/f5a623/ffffff?text=취업+특강',
-    createdAt: '2025-01-01',
-    isActive: false,
-  },
-  {
-    id: 4,
-    title: '동아리 모집',
-    imageUrl: 'https://placehold.co/400x600/e93c3c/ffffff?text=동아리+모집',
-    createdAt: '2024-12-28',
-    isActive: true,
-  },
-];
+import {
+  useGetAllPosters,
+  useAddPoster,
+  useUpdatePoster,
+  useDeletePoster,
+  useActivatePoster,
+  useDeactivatePoster,
+  useGetSchedules,
+  useAddSchedule,
+  useUpdateSchedule,
+  useDeleteSchedule,
+  getGetAllPostersQueryKey,
+  getGetSchedulesQueryKey,
+} from '@/api-client';
+import type { DisplayCalendarScheduleDetail, DisplayPosterDetail } from '@/api-client/model';
 
 type TabType = 'calendar' | 'poster';
 
 export default function DisplayPage() {
+  const queryClient = useQueryClient();
   const [activeTab, setActiveTab] = useState<TabType>('calendar');
-  const [currentDate, setCurrentDate] = useState(new Date(2025, 0, 1));
-  const [schedules, setSchedules] = useState<DisplayCalendarSchedule[]>(mockSchedules);
-  const [posters, setPosters] = useState<DisplayPoster[]>(mockPosters);
+  const [currentDate, setCurrentDate] = useState(new Date());
 
+  // 일정 모달 상태
   const [isScheduleModalOpen, setIsScheduleModalOpen] = useState(false);
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
   const [editingSchedules, setEditingSchedules] = useState<string[]>([]);
+  const [editingScheduleId, setEditingScheduleId] = useState<number | null>(null);
 
+  // 포스터 모달 상태
   const [isPosterModalOpen, setIsPosterModalOpen] = useState(false);
-  const [editingPoster, setEditingPoster] = useState<DisplayPoster | null>(null);
+  const [editingPoster, setEditingPoster] = useState<DisplayPosterDetail | null>(null);
   const [posterTitle, setPosterTitle] = useState('');
-  const [posterImageUrl, setPosterImageUrl] = useState('');
+  const [posterImageFile, setPosterImageFile] = useState<File | null>(null);
+  const [posterImagePreview, setPosterImagePreview] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
+  // 삭제 모달 상태
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
-  const [posterToDelete, setPosterToDelete] = useState<DisplayPoster | null>(null);
+  const [posterToDelete, setPosterToDelete] = useState<DisplayPosterDetail | null>(null);
 
   const year = currentDate.getFullYear();
   const month = currentDate.getMonth();
 
-  const getDaysInMonth = (year: number, month: number) => {
-    return new Date(year, month + 1, 0).getDate();
+  // --- API 쿼리 ---
+
+  const startDate = `${year}-${String(month + 1).padStart(2, '0')}-01`;
+  const endDate = `${year}-${String(month + 1).padStart(2, '0')}-${new Date(year, month + 1, 0).getDate()}`;
+
+  const { data: schedulesData } = useGetSchedules(
+    { startDate, endDate },
+    { query: { staleTime: 1000 * 60 * 3 } },
+  );
+
+  const { data: postersData } = useGetAllPosters({
+    query: { staleTime: 1000 * 60 * 3 },
+  });
+
+  const schedules = schedulesData?.schedules ?? [];
+  const posters = postersData?.posters ?? [];
+
+  // --- Mutations ---
+
+  const addScheduleMutation = useAddSchedule({
+    mutation: {
+      onSuccess: () => {
+        queryClient.invalidateQueries({ queryKey: getGetSchedulesQueryKey({ startDate, endDate }) });
+        toast.success('일정이 추가되었습니다.');
+        setIsScheduleModalOpen(false);
+      },
+      onError: (error: any) => {
+        toast.error(error?.response?.data?.message || '일정 추가에 실패했습니다.');
+      },
+    },
+  });
+
+  const updateScheduleMutation = useUpdateSchedule({
+    mutation: {
+      onSuccess: () => {
+        queryClient.invalidateQueries({ queryKey: getGetSchedulesQueryKey({ startDate, endDate }) });
+        toast.success('일정이 수정되었습니다.');
+        setIsScheduleModalOpen(false);
+      },
+      onError: (error: any) => {
+        toast.error(error?.response?.data?.message || '일정 수정에 실패했습니다.');
+      },
+    },
+  });
+
+  const deleteScheduleMutation = useDeleteSchedule({
+    mutation: {
+      onSuccess: () => {
+        queryClient.invalidateQueries({ queryKey: getGetSchedulesQueryKey({ startDate, endDate }) });
+        toast.success('일정이 삭제되었습니다.');
+        setIsScheduleModalOpen(false);
+      },
+      onError: (error: any) => {
+        toast.error(error?.response?.data?.message || '일정 삭제에 실패했습니다.');
+      },
+    },
+  });
+
+  const addPosterMutation = useAddPoster({
+    mutation: {
+      onSuccess: () => {
+        queryClient.invalidateQueries({ queryKey: getGetAllPostersQueryKey() });
+        toast.success('포스터가 추가되었습니다.');
+        setIsPosterModalOpen(false);
+      },
+      onError: (error: any) => {
+        toast.error(error?.response?.data?.message || '포스터 추가에 실패했습니다.');
+      },
+    },
+  });
+
+  const updatePosterMutation = useUpdatePoster({
+    mutation: {
+      onSuccess: () => {
+        queryClient.invalidateQueries({ queryKey: getGetAllPostersQueryKey() });
+        toast.success('포스터가 수정되었습니다.');
+        setIsPosterModalOpen(false);
+      },
+      onError: (error: any) => {
+        toast.error(error?.response?.data?.message || '포스터 수정에 실패했습니다.');
+      },
+    },
+  });
+
+  const deletePosterMutation = useDeletePoster({
+    mutation: {
+      onSuccess: () => {
+        queryClient.invalidateQueries({ queryKey: getGetAllPostersQueryKey() });
+        toast.success('포스터가 삭제되었습니다.');
+        setIsDeleteModalOpen(false);
+        setPosterToDelete(null);
+      },
+      onError: (error: any) => {
+        toast.error(error?.response?.data?.message || '포스터 삭제에 실패했습니다.');
+      },
+    },
+  });
+
+  const activatePosterMutation = useActivatePoster({
+    mutation: {
+      onSuccess: () => {
+        queryClient.invalidateQueries({ queryKey: getGetAllPostersQueryKey() });
+      },
+      onError: (error: any) => {
+        toast.error(error?.response?.data?.message || '포스터 상태 변경에 실패했습니다.');
+      },
+    },
+  });
+
+  const deactivatePosterMutation = useDeactivatePoster({
+    mutation: {
+      onSuccess: () => {
+        queryClient.invalidateQueries({ queryKey: getGetAllPostersQueryKey() });
+      },
+      onError: (error: any) => {
+        toast.error(error?.response?.data?.message || '포스터 상태 변경에 실패했습니다.');
+      },
+    },
+  });
+
+  // --- 캘린더 핸들러 ---
+
+  const getDaysInMonth = (y: number, m: number) => new Date(y, m + 1, 0).getDate();
+  const getFirstDayOfMonth = (y: number, m: number) => new Date(y, m, 1).getDay();
+
+  const formatDateString = (y: number, m: number, day: number) => {
+    return `${y}-${String(m + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
   };
 
-  const getFirstDayOfMonth = (year: number, month: number) => {
-    return new Date(year, month, 1).getDay();
+  const getScheduleForDate = (dateString: string): DisplayCalendarScheduleDetail | undefined => {
+    return schedules.find((s) => s.date === dateString);
   };
 
-  const formatDateString = (year: number, month: number, day: number) => {
-    return `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
-  };
-
-  const getSchedulesForDate = (dateString: string) => {
-    const schedule = schedules.find((s) => s.date === dateString);
-    return schedule?.schedules || [];
-  };
-
-  const handlePrevMonth = () => {
-    setCurrentDate(new Date(year, month - 1, 1));
-  };
-
-  const handleNextMonth = () => {
-    setCurrentDate(new Date(year, month + 1, 1));
-  };
+  const handlePrevMonth = () => setCurrentDate(new Date(year, month - 1, 1));
+  const handleNextMonth = () => setCurrentDate(new Date(year, month + 1, 1));
 
   const handleDateClick = (dateString: string) => {
+    const existing = getScheduleForDate(dateString);
     setSelectedDate(dateString);
-    setEditingSchedules(getSchedulesForDate(dateString));
+    setEditingSchedules(existing?.schedules ?? []);
+    setEditingScheduleId(existing?.scheduleId ?? null);
     setIsScheduleModalOpen(true);
   };
 
@@ -113,26 +208,26 @@ export default function DisplayPage() {
 
     const filteredSchedules = editingSchedules.filter((s) => s.trim() !== '');
 
-    setSchedules((prev) => {
-      const existing = prev.find((s) => s.date === selectedDate);
-      if (existing) {
-        if (filteredSchedules.length === 0) {
-          return prev.filter((s) => s.date !== selectedDate);
-        }
-        return prev.map((s) =>
-          s.date === selectedDate ? { ...s, schedules: filteredSchedules } : s,
-        );
-      } else if (filteredSchedules.length > 0) {
-        return [
-          ...prev,
-          { id: Date.now(), date: selectedDate, schedules: filteredSchedules },
-        ];
+    if (editingScheduleId) {
+      // 기존 일정이 있는 경우
+      if (filteredSchedules.length === 0) {
+        deleteScheduleMutation.mutate({ id: editingScheduleId });
+      } else {
+        updateScheduleMutation.mutate({
+          id: editingScheduleId,
+          data: { date: selectedDate, schedules: filteredSchedules },
+        });
       }
-      return prev;
-    });
-
-    setIsScheduleModalOpen(false);
-    toast.success('일정이 저장되었습니다.');
+    } else {
+      // 새 일정
+      if (filteredSchedules.length === 0) {
+        setIsScheduleModalOpen(false);
+        return;
+      }
+      addScheduleMutation.mutate({
+        data: { date: selectedDate, schedules: filteredSchedules },
+      });
+    }
   };
 
   const handleAddScheduleInput = () => {
@@ -153,69 +248,81 @@ export default function DisplayPage() {
     setEditingSchedules(editingSchedules.filter((_, i) => i !== index));
   };
 
+  // --- 포스터 핸들러 ---
+
   const handleOpenAddPoster = () => {
     setEditingPoster(null);
     setPosterTitle('');
-    setPosterImageUrl('');
+    setPosterImageFile(null);
+    setPosterImagePreview(null);
     setIsPosterModalOpen(true);
   };
 
-  const handleOpenEditPoster = (poster: DisplayPoster) => {
+  const handleOpenEditPoster = (poster: DisplayPosterDetail) => {
     setEditingPoster(poster);
     setPosterTitle(poster.title);
-    setPosterImageUrl(poster.imageUrl);
+    setPosterImageFile(null);
+    setPosterImagePreview(poster.imageUrl);
     setIsPosterModalOpen(true);
+  };
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setPosterImageFile(file);
+    setPosterImagePreview(URL.createObjectURL(file));
   };
 
   const handleSavePoster = () => {
-    if (!posterTitle.trim() || !posterImageUrl.trim()) {
-      toast.error('제목과 이미지 URL을 입력해주세요.');
+    if (!posterTitle.trim()) {
+      toast.error('포스터 제목을 입력해주세요.');
       return;
     }
 
     if (editingPoster) {
-      setPosters((prev) =>
-        prev.map((p) =>
-          p.id === editingPoster.id
-            ? { ...p, title: posterTitle, imageUrl: posterImageUrl }
-            : p,
-        ),
-      );
-      toast.success('포스터가 수정되었습니다.');
+      // 수정
+      updatePosterMutation.mutate({
+        posterId: editingPoster.posterId,
+        data: {
+          ...(posterImageFile ? { image: posterImageFile } : {}),
+          posterRequest: { title: posterTitle },
+        },
+      });
     } else {
-      const newPoster: DisplayPoster = {
-        id: Date.now(),
-        title: posterTitle,
-        imageUrl: posterImageUrl,
-        createdAt: new Date().toISOString().split('T')[0],
-        isActive: true,
-      };
-      setPosters((prev) => [newPoster, ...prev]);
-      toast.success('포스터가 추가되었습니다.');
+      // 추가
+      if (!posterImageFile) {
+        toast.error('포스터 이미지를 선택해주세요.');
+        return;
+      }
+      addPosterMutation.mutate({
+        data: {
+          image: posterImageFile,
+          posterRequest: { title: posterTitle },
+        },
+      });
     }
-
-    setIsPosterModalOpen(false);
   };
 
-  const handleDeletePoster = (poster: DisplayPoster) => {
+  const handleDeletePoster = (poster: DisplayPosterDetail) => {
     setPosterToDelete(poster);
     setIsDeleteModalOpen(true);
   };
 
   const confirmDeletePoster = () => {
     if (posterToDelete) {
-      setPosters((prev) => prev.filter((p) => p.id !== posterToDelete.id));
-      toast.success('포스터가 삭제되었습니다.');
-      setIsDeleteModalOpen(false);
-      setPosterToDelete(null);
+      deletePosterMutation.mutate({ posterId: posterToDelete.posterId });
     }
   };
 
-  const togglePosterActive = (posterId: number) => {
-    setPosters((prev) =>
-      prev.map((p) => (p.id === posterId ? { ...p, isActive: !p.isActive } : p)),
-    );
+  const togglePosterActive = (poster: DisplayPosterDetail) => {
+    if (poster.isActive) {
+      deactivatePosterMutation.mutate({ posterId: poster.posterId });
+    } else {
+      activatePosterMutation.mutate({ posterId: poster.posterId });
+    }
   };
+
+  // --- 렌더링 ---
 
   const renderCalendar = () => {
     const daysInMonth = getDaysInMonth(year, month);
@@ -229,7 +336,8 @@ export default function DisplayPage() {
 
     for (let day = 1; day <= daysInMonth; day++) {
       const dateString = formatDateString(year, month, day);
-      const daySchedules = getSchedulesForDate(dateString);
+      const schedule = getScheduleForDate(dateString);
+      const daySchedules = schedule?.schedules ?? [];
       const isToday =
         new Date().toDateString() === new Date(year, month, day).toDateString();
 
@@ -249,12 +357,12 @@ export default function DisplayPage() {
             {day}
           </div>
           <div className="space-y-1">
-            {daySchedules.slice(0, 3).map((schedule, idx) => (
+            {daySchedules.slice(0, 3).map((s, idx) => (
               <div
                 key={idx}
                 className="text-xs px-1.5 py-0.5 bg-[var(--primary)] text-[var(--primary-foreground)] rounded truncate"
               >
-                {schedule}
+                {s}
               </div>
             ))}
             {daySchedules.length > 3 && (
@@ -285,11 +393,20 @@ export default function DisplayPage() {
   };
 
   const renderPosters = () => {
+    if (posters.length === 0) {
+      return (
+        <div className="flex flex-col items-center justify-center rounded-lg border border-dashed border-[var(--border)] bg-[var(--card)] py-16">
+          <Image className="mb-3 h-10 w-10 text-[var(--foreground-subtle)]" />
+          <p className="text-sm text-[var(--foreground-subtle)]">등록된 포스터가 없습니다.</p>
+        </div>
+      );
+    }
+
     return (
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
         {posters.map((poster) => (
           <div
-            key={poster.id}
+            key={poster.posterId}
             className={`rounded-lg border ${
               poster.isActive ? 'border-[var(--primary)]' : 'border-[var(--border)]'
             } bg-[var(--card)] shadow-sm overflow-hidden`}
@@ -310,17 +427,31 @@ export default function DisplayPage() {
             </div>
             <div className="p-4">
               <h3 className="font-medium text-[var(--foreground)] truncate">{poster.title}</h3>
-              <p className="text-xs text-[var(--foreground-subtle)] mt-1">{poster.createdAt}</p>
+              <p className="text-xs text-[var(--foreground-subtle)] mt-1">
+                {poster.createdAt.split('T')[0]}
+              </p>
               <div className="flex items-center justify-between mt-3">
                 <button
-                  onClick={() => togglePosterActive(poster.id)}
-                  className={`text-xs px-3 py-1.5 rounded-md font-medium cursor-pointer ${
-                    poster.isActive
-                      ? 'bg-[var(--success-bg)] text-[var(--success)]'
-                      : 'bg-[var(--secondary)] text-[var(--foreground-subtle)]'
-                  }`}
+                  onClick={() => togglePosterActive(poster)}
+                  className="flex items-center gap-2 cursor-pointer"
+                  type="button"
                 >
-                  {poster.isActive ? '활성화됨' : '비활성화됨'}
+                  <div
+                    className={`relative h-5 w-9 rounded-full transition-colors ${
+                      poster.isActive ? 'bg-[var(--success)]' : 'bg-[var(--border)]'
+                    }`}
+                  >
+                    <div
+                      className={`absolute top-0.5 h-4 w-4 rounded-full bg-white shadow transition-transform ${
+                        poster.isActive ? 'translate-x-4' : 'translate-x-0.5'
+                      }`}
+                    />
+                  </div>
+                  <span className={`text-xs font-medium ${
+                    poster.isActive ? 'text-[var(--success)]' : 'text-[var(--foreground-subtle)]'
+                  }`}>
+                    {poster.isActive ? '활성화' : '비활성화'}
+                  </span>
                 </button>
                 <div className="flex items-center gap-1">
                   <button
@@ -343,6 +474,9 @@ export default function DisplayPage() {
       </div>
     );
   };
+
+  const isSaving = addScheduleMutation.isPending || updateScheduleMutation.isPending || deleteScheduleMutation.isPending;
+  const isPosterSaving = addPosterMutation.isPending || updatePosterMutation.isPending;
 
   return (
     <div className="space-y-6">
@@ -478,10 +612,11 @@ export default function DisplayPage() {
               </button>
               <button
                 onClick={handleSaveSchedules}
-                className="flex items-center gap-1 h-10 px-4 rounded-lg bg-[var(--primary)] text-sm font-medium text-[var(--primary-foreground)] hover:bg-[var(--primary-hover)] cursor-pointer"
+                disabled={isSaving}
+                className="flex items-center gap-1 h-10 px-4 rounded-lg bg-[var(--primary)] text-sm font-medium text-[var(--primary-foreground)] hover:bg-[var(--primary-hover)] disabled:opacity-50 cursor-pointer"
               >
                 <Save className="h-4 w-4" />
-                저장
+                {isSaving ? '저장 중...' : '저장'}
               </button>
             </div>
           </div>
@@ -519,33 +654,39 @@ export default function DisplayPage() {
               </div>
               <div>
                 <label className="block text-sm font-medium text-[var(--foreground-muted)] mb-2">
-                  이미지 URL (PNG)
+                  포스터 이미지
                 </label>
                 <input
-                  type="text"
-                  value={posterImageUrl}
-                  onChange={(e) => setPosterImageUrl(e.target.value)}
-                  placeholder="https://example.com/poster.png"
-                  className="w-full h-10 rounded-lg border border-[var(--border)] bg-[var(--input)] px-4 text-sm text-[var(--foreground)] placeholder:text-[var(--foreground-subtle)] focus:border-[var(--primary)] focus:outline-none focus:ring-1 focus:ring-[var(--primary)]"
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/*"
+                  onChange={handleFileChange}
+                  className="hidden"
                 />
-                <p className="text-xs text-[var(--foreground-subtle)] mt-1">
-                  PNG 형식의 이미지 URL을 입력해주세요
-                </p>
+                <button
+                  type="button"
+                  onClick={() => fileInputRef.current?.click()}
+                  className="flex w-full items-center justify-center gap-2 rounded-lg border border-dashed border-[var(--border)] bg-[var(--background)] px-4 py-3 text-sm text-[var(--foreground-muted)] hover:border-[var(--primary)] hover:text-[var(--primary)] transition-colors cursor-pointer"
+                >
+                  <Upload className="h-4 w-4" />
+                  {posterImageFile ? posterImageFile.name : '이미지 파일 선택'}
+                </button>
+                {editingPoster && !posterImageFile && (
+                  <p className="text-xs text-[var(--foreground-subtle)] mt-1">
+                    변경하지 않으면 기존 이미지가 유지됩니다.
+                  </p>
+                )}
               </div>
-              {posterImageUrl && (
+              {posterImagePreview && (
                 <div>
                   <label className="block text-sm font-medium text-[var(--foreground-muted)] mb-2">
                     미리보기
                   </label>
                   <div className="aspect-[2/3] max-h-60 rounded-lg border border-[var(--border)] bg-[var(--background)] overflow-hidden">
                     <img
-                      src={posterImageUrl}
+                      src={posterImagePreview}
                       alt="미리보기"
                       className="w-full h-full object-cover"
-                      onError={(e) => {
-                        (e.target as HTMLImageElement).src =
-                          'https://placehold.co/400x600/e5e8eb/8b95a1?text=이미지+로드+실패';
-                      }}
                     />
                   </div>
                 </div>
@@ -561,10 +702,11 @@ export default function DisplayPage() {
               </button>
               <button
                 onClick={handleSavePoster}
-                className="flex items-center gap-1 h-10 px-4 rounded-lg bg-[var(--primary)] text-sm font-medium text-[var(--primary-foreground)] hover:bg-[var(--primary-hover)] cursor-pointer"
+                disabled={isPosterSaving}
+                className="flex items-center gap-1 h-10 px-4 rounded-lg bg-[var(--primary)] text-sm font-medium text-[var(--primary-foreground)] hover:bg-[var(--primary-hover)] disabled:opacity-50 cursor-pointer"
               >
                 <Save className="h-4 w-4" />
-                {editingPoster ? '수정' : '추가'}
+                {isPosterSaving ? '저장 중...' : editingPoster ? '수정' : '추가'}
               </button>
             </div>
           </div>
@@ -599,10 +741,11 @@ export default function DisplayPage() {
               </button>
               <button
                 onClick={confirmDeletePoster}
-                className="flex items-center gap-1 h-10 px-4 rounded-lg bg-[var(--error)] text-sm font-medium text-white hover:opacity-90 cursor-pointer"
+                disabled={deletePosterMutation.isPending}
+                className="flex items-center gap-1 h-10 px-4 rounded-lg bg-[var(--error)] text-sm font-medium text-white hover:opacity-90 disabled:opacity-50 cursor-pointer"
               >
                 <Trash2 className="h-4 w-4" />
-                삭제
+                {deletePosterMutation.isPending ? '삭제 중...' : '삭제'}
               </button>
             </div>
           </div>

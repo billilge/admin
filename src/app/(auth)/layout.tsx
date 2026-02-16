@@ -1,8 +1,8 @@
 'use client';
 
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
-import type { ReactNode } from 'react';
+import { usePathname, useRouter } from 'next/navigation';
+import { type ReactNode, useState, useEffect, useCallback } from 'react';
 import {
   Package,
   Users,
@@ -13,6 +13,8 @@ import {
   LogOut,
 } from 'lucide-react';
 import useAuthRedirect from '@/hooks/useAuthRedirect';
+import { getRoleFromToken, hasPermission, type Role } from '@/lib/auth';
+import AccessDeniedModal from '@/components/modal/AccessDeniedModal';
 
 type AuthLayoutProps = {
   children: ReactNode;
@@ -30,6 +32,32 @@ const navItems = [
 export default function AuthLayout({ children }: AuthLayoutProps) {
   useAuthRedirect();
   const pathname = usePathname();
+  const router = useRouter();
+
+  const [role, setRole] = useState<Role | null>(null);
+  const [showAccessDenied, setShowAccessDenied] = useState(false);
+
+  useEffect(() => {
+    setRole(getRoleFromToken());
+  }, []);
+
+  // 현재 URL이 권한 없는 페이지인 경우 리다이렉트
+  useEffect(() => {
+    if (role && !hasPermission(pathname, role)) {
+      setShowAccessDenied(true);
+      router.replace('/rental');
+    }
+  }, [pathname, role, router]);
+
+  const handleNavClick = useCallback(
+    (e: React.MouseEvent, href: string) => {
+      if (!hasPermission(href, role)) {
+        e.preventDefault();
+        setShowAccessDenied(true);
+      }
+    },
+    [role],
+  );
 
   return (
     <div className="flex min-h-screen bg-[var(--background)]">
@@ -48,14 +76,18 @@ export default function AuthLayout({ children }: AuthLayoutProps) {
           <ul className="space-y-1 px-3">
             {navItems.map((item) => {
               const isActive = pathname === item.href;
+              const permitted = hasPermission(item.href, role);
               return (
                 <li key={item.href}>
                   <Link
                     href={item.href}
+                    onClick={(e) => handleNavClick(e, item.href)}
                     className={`flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors ${
-                      isActive
-                        ? 'bg-[var(--sidebar-active)] text-[var(--primary)]'
-                        : 'text-[var(--foreground-muted)] hover:bg-[var(--sidebar-hover)] hover:text-[var(--foreground)]'
+                      !permitted
+                        ? 'cursor-not-allowed text-[var(--foreground-subtle)] opacity-50'
+                        : isActive
+                          ? 'bg-[var(--sidebar-active)] text-[var(--primary)]'
+                          : 'text-[var(--foreground-muted)] hover:bg-[var(--sidebar-hover)] hover:text-[var(--foreground)]'
                     }`}
                   >
                     <item.icon className="h-5 w-5" />
@@ -81,6 +113,12 @@ export default function AuthLayout({ children }: AuthLayoutProps) {
 
       {/* Main Content */}
       <main className="ml-64 flex-1 p-8">{children}</main>
+
+      {/* Access Denied Modal */}
+      <AccessDeniedModal
+        isOpen={showAccessDenied}
+        onClose={() => setShowAccessDenied(false)}
+      />
     </div>
   );
 }

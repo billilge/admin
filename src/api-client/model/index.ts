@@ -7,6 +7,7 @@
  */
 
 export * from './addItemBody';
+export * from './addPosterBody';
 export * from './adminFindAllResponse';
 export * from './adminItemDetail';
 export * from './adminItemDetailItemType';
@@ -19,7 +20,14 @@ export * from './adminRentalHistoryDetailRentalStatus';
 export * from './adminRentalHistoryFindAllResponse';
 export * from './adminRentalHistoryRequest';
 export * from './adminRequest';
+export * from './adminRequestRole';
 export * from './dashboardResponse';
+export * from './displayCalendarScheduleDetail';
+export * from './displayCalendarScheduleFindAllResponse';
+export * from './displayCalendarScheduleRequest';
+export * from './displayPosterDetail';
+export * from './displayPosterFindAllResponse';
+export * from './displayPosterRequest';
 export * from './errorResponse';
 export * from './getAdminListParams';
 export * from './getAllAdminItemsParams';
@@ -31,6 +39,7 @@ export * from './getAllRentalHistoriesParams';
 export * from './getItemsParams';
 export * from './getMemberRentalHistoryParams';
 export * from './getMemberRentalHistoryRentalStatus';
+export * from './getSchedulesParams';
 export * from './itemDetail';
 export * from './itemDetailItemType';
 export * from './itemFindAllResponse';
@@ -65,3 +74,4 @@ export * from './returnRequiredItemFindAllResponse';
 export * from './signUpRequest';
 export * from './signUpResponse';
 export * from './updateItemBody';
+export * from './updatePosterBody';

@@ -26,6 +26,7 @@ import type {
 
 import type {
   AddItemBody,
+  AddPosterBody,
   AdminFindAllResponse,
   AdminItemFindAllResponse,
   AdminLoginRequest,
@@ -34,6 +35,9 @@ import type {
   AdminRentalHistoryRequest,
   AdminRequest,
   DashboardResponse,
+  DisplayCalendarScheduleFindAllResponse,
+  DisplayCalendarScheduleRequest,
+  DisplayPosterFindAllResponse,
   ErrorResponse,
   GetAdminListParams,
   GetAllAdminItemsParams,
@@ -43,6 +47,7 @@ import type {
   GetAllRentalHistoriesParams,
   GetItemsParams,
   GetMemberRentalHistoryParams,
+  GetSchedulesParams,
   ItemDetail,
   ItemFindAllResponse,
   MemberFCMTokenRequest,
@@ -58,7 +63,8 @@ import type {
   ReturnRequiredItemFindAllResponse,
   SignUpRequest,
   SignUpResponse,
-  UpdateItemBody
+  UpdateItemBody,
+  UpdatePosterBody
 } from './model';
 
 import { customMutator } from '../lib/axiosMutator';
@@ -560,6 +566,384 @@ export const useSetFCMToken = <TError = unknown,
       > => {
 
       const mutationOptions = getSetFCMTokenMutationOptions(options);
+
+      return useMutation(mutationOptions , queryClient);
+    }
+    
+/**
+ * 전체 포스터 목록을 조회하는 API
+ * @summary 포스터 목록 조회
+ */
+export const getAllPosters = (
+    
+ signal?: AbortSignal
+) => {
+      
+      
+      return customMutator<DisplayPosterFindAllResponse>(
+      {url: `/display/posters`, method: 'GET', signal
+    },
+      );
+    }
+  
+
+export const getGetAllPostersQueryKey = () => {
+    return [`/display/posters`] as const;
+    }
+
+    
+export const getGetAllPostersQueryOptions = <TData = Awaited<ReturnType<typeof getAllPosters>>, TError = unknown>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getAllPosters>>, TError, TData>>, }
+) => {
+
+const {query: queryOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetAllPostersQueryKey();
+
+  
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getAllPosters>>> = ({ signal }) => getAllPosters(signal);
+
+      
+
+      
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getAllPosters>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type GetAllPostersQueryResult = NonNullable<Awaited<ReturnType<typeof getAllPosters>>>
+export type GetAllPostersQueryError = unknown
+
+
+export function useGetAllPosters<TData = Awaited<ReturnType<typeof getAllPosters>>, TError = unknown>(
+  options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getAllPosters>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getAllPosters>>,
+          TError,
+          Awaited<ReturnType<typeof getAllPosters>>
+        > , 'initialData'
+      >, }
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetAllPosters<TData = Awaited<ReturnType<typeof getAllPosters>>, TError = unknown>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getAllPosters>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getAllPosters>>,
+          TError,
+          Awaited<ReturnType<typeof getAllPosters>>
+        > , 'initialData'
+      >, }
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetAllPosters<TData = Awaited<ReturnType<typeof getAllPosters>>, TError = unknown>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getAllPosters>>, TError, TData>>, }
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * @summary 포스터 목록 조회
+ */
+
+export function useGetAllPosters<TData = Awaited<ReturnType<typeof getAllPosters>>, TError = unknown>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getAllPosters>>, TError, TData>>, }
+ , queryClient?: QueryClient 
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getGetAllPostersQueryOptions(options)
+
+  const query = useQuery(queryOptions , queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  query.queryKey = queryOptions.queryKey ;
+
+  return query;
+}
+
+
+
+
+/**
+ * 포스터를 추가하는 API
+ * @summary 포스터 추가
+ */
+export const addPoster = (
+    addPosterBody: AddPosterBody,
+ signal?: AbortSignal
+) => {
+      
+      const formData = new FormData();
+formData.append(`image`, addPosterBody.image)
+formData.append(`posterRequest`, JSON.stringify(addPosterBody.posterRequest));
+
+      return customMutator<void>(
+      {url: `/display/posters`, method: 'POST',
+      headers: {'Content-Type': 'multipart/form-data', },
+       data: formData, signal
+    },
+      );
+    }
+  
+
+
+export const getAddPosterMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof addPoster>>, TError,{data: AddPosterBody}, TContext>, }
+): UseMutationOptions<Awaited<ReturnType<typeof addPoster>>, TError,{data: AddPosterBody}, TContext> => {
+
+const mutationKey = ['addPoster'];
+const {mutation: mutationOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }};
+
+      
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof addPoster>>, {data: AddPosterBody}> = (props) => {
+          const {data} = props ?? {};
+
+          return  addPoster(data,)
+        }
+
+        
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type AddPosterMutationResult = NonNullable<Awaited<ReturnType<typeof addPoster>>>
+    export type AddPosterMutationBody = AddPosterBody
+    export type AddPosterMutationError = unknown
+
+    /**
+ * @summary 포스터 추가
+ */
+export const useAddPoster = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof addPoster>>, TError,{data: AddPosterBody}, TContext>, }
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof addPoster>>,
+        TError,
+        {data: AddPosterBody},
+        TContext
+      > => {
+
+      const mutationOptions = getAddPosterMutationOptions(options);
+
+      return useMutation(mutationOptions , queryClient);
+    }
+    
+/**
+ * 포스터를 활성화하는 API
+ * @summary 포스터 활성화
+ */
+export const activatePoster = (
+    posterId: number,
+ signal?: AbortSignal
+) => {
+      
+      
+      return customMutator<void>(
+      {url: `/display/posters/${posterId}/activate`, method: 'POST', signal
+    },
+      );
+    }
+  
+
+
+export const getActivatePosterMutationOptions = <TError = ErrorResponse,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof activatePoster>>, TError,{posterId: number}, TContext>, }
+): UseMutationOptions<Awaited<ReturnType<typeof activatePoster>>, TError,{posterId: number}, TContext> => {
+
+const mutationKey = ['activatePoster'];
+const {mutation: mutationOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }};
+
+      
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof activatePoster>>, {posterId: number}> = (props) => {
+          const {posterId} = props ?? {};
+
+          return  activatePoster(posterId,)
+        }
+
+        
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type ActivatePosterMutationResult = NonNullable<Awaited<ReturnType<typeof activatePoster>>>
+    
+    export type ActivatePosterMutationError = ErrorResponse
+
+    /**
+ * @summary 포스터 활성화
+ */
+export const useActivatePoster = <TError = ErrorResponse,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof activatePoster>>, TError,{posterId: number}, TContext>, }
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof activatePoster>>,
+        TError,
+        {posterId: number},
+        TContext
+      > => {
+
+      const mutationOptions = getActivatePosterMutationOptions(options);
+
+      return useMutation(mutationOptions , queryClient);
+    }
+    
+/**
+ * 시작일과 종료일 사이의 일정 목록을 조회하는 API
+ * @summary 기간별 일정 조회
+ */
+export const getSchedules = (
+    params: GetSchedulesParams,
+ signal?: AbortSignal
+) => {
+      
+      
+      return customMutator<DisplayCalendarScheduleFindAllResponse>(
+      {url: `/display/calendar-schedules`, method: 'GET',
+        params, signal
+    },
+      );
+    }
+  
+
+export const getGetSchedulesQueryKey = (params: GetSchedulesParams,) => {
+    return [`/display/calendar-schedules`, ...(params ? [params]: [])] as const;
+    }
+
+    
+export const getGetSchedulesQueryOptions = <TData = Awaited<ReturnType<typeof getSchedules>>, TError = unknown>(params: GetSchedulesParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getSchedules>>, TError, TData>>, }
+) => {
+
+const {query: queryOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetSchedulesQueryKey(params);
+
+  
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getSchedules>>> = ({ signal }) => getSchedules(params, signal);
+
+      
+
+      
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getSchedules>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type GetSchedulesQueryResult = NonNullable<Awaited<ReturnType<typeof getSchedules>>>
+export type GetSchedulesQueryError = unknown
+
+
+export function useGetSchedules<TData = Awaited<ReturnType<typeof getSchedules>>, TError = unknown>(
+ params: GetSchedulesParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getSchedules>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getSchedules>>,
+          TError,
+          Awaited<ReturnType<typeof getSchedules>>
+        > , 'initialData'
+      >, }
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetSchedules<TData = Awaited<ReturnType<typeof getSchedules>>, TError = unknown>(
+ params: GetSchedulesParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getSchedules>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getSchedules>>,
+          TError,
+          Awaited<ReturnType<typeof getSchedules>>
+        > , 'initialData'
+      >, }
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetSchedules<TData = Awaited<ReturnType<typeof getSchedules>>, TError = unknown>(
+ params: GetSchedulesParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getSchedules>>, TError, TData>>, }
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * @summary 기간별 일정 조회
+ */
+
+export function useGetSchedules<TData = Awaited<ReturnType<typeof getSchedules>>, TError = unknown>(
+ params: GetSchedulesParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getSchedules>>, TError, TData>>, }
+ , queryClient?: QueryClient 
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getGetSchedulesQueryOptions(params,options)
+
+  const query = useQuery(queryOptions , queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  query.queryKey = queryOptions.queryKey ;
+
+  return query;
+}
+
+
+
+
+/**
+ * 해당일 일정을 추가하는 API
+ * @summary 일정 추가
+ */
+export const addSchedule = (
+    displayCalendarScheduleRequest: DisplayCalendarScheduleRequest,
+ signal?: AbortSignal
+) => {
+      
+      
+      return customMutator<void>(
+      {url: `/display/calendar-schedules`, method: 'POST',
+      headers: {'Content-Type': 'application/json', },
+      data: displayCalendarScheduleRequest, signal
+    },
+      );
+    }
+  
+
+
+export const getAddScheduleMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof addSchedule>>, TError,{data: DisplayCalendarScheduleRequest}, TContext>, }
+): UseMutationOptions<Awaited<ReturnType<typeof addSchedule>>, TError,{data: DisplayCalendarScheduleRequest}, TContext> => {
+
+const mutationKey = ['addSchedule'];
+const {mutation: mutationOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }};
+
+      
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof addSchedule>>, {data: DisplayCalendarScheduleRequest}> = (props) => {
+          const {data} = props ?? {};
+
+          return  addSchedule(data,)
+        }
+
+        
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type AddScheduleMutationResult = NonNullable<Awaited<ReturnType<typeof addSchedule>>>
+    export type AddScheduleMutationBody = DisplayCalendarScheduleRequest
+    export type AddScheduleMutationError = unknown
+
+    /**
+ * @summary 일정 추가
+ */
+export const useAddSchedule = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof addSchedule>>, TError,{data: DisplayCalendarScheduleRequest}, TContext>, }
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof addSchedule>>,
+        TError,
+        {data: DisplayCalendarScheduleRequest},
+        TContext
+      > => {
+
+      const mutationOptions = getAddScheduleMutationOptions(options);
 
       return useMutation(mutationOptions , queryClient);
     }
@@ -1706,6 +2090,269 @@ export const useReadAllNotifications = <TError = void,
     }
     
 /**
+ * 포스터를 삭제하는 API
+ * @summary 포스터 삭제
+ */
+export const deletePoster = (
+    posterId: number,
+ ) => {
+      
+      
+      return customMutator<void>(
+      {url: `/display/posters/${posterId}`, method: 'DELETE'
+    },
+      );
+    }
+  
+
+
+export const getDeletePosterMutationOptions = <TError = ErrorResponse,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deletePoster>>, TError,{posterId: number}, TContext>, }
+): UseMutationOptions<Awaited<ReturnType<typeof deletePoster>>, TError,{posterId: number}, TContext> => {
+
+const mutationKey = ['deletePoster'];
+const {mutation: mutationOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }};
+
+      
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof deletePoster>>, {posterId: number}> = (props) => {
+          const {posterId} = props ?? {};
+
+          return  deletePoster(posterId,)
+        }
+
+        
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type DeletePosterMutationResult = NonNullable<Awaited<ReturnType<typeof deletePoster>>>
+    
+    export type DeletePosterMutationError = ErrorResponse
+
+    /**
+ * @summary 포스터 삭제
+ */
+export const useDeletePoster = <TError = ErrorResponse,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deletePoster>>, TError,{posterId: number}, TContext>, }
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof deletePoster>>,
+        TError,
+        {posterId: number},
+        TContext
+      > => {
+
+      const mutationOptions = getDeletePosterMutationOptions(options);
+
+      return useMutation(mutationOptions , queryClient);
+    }
+    
+/**
+ * 포스터 정보를 수정하는 API
+ * @summary 포스터 수정
+ */
+export const updatePoster = (
+    posterId: number,
+    updatePosterBody: UpdatePosterBody,
+ ) => {
+      
+      const formData = new FormData();
+if(updatePosterBody.image !== undefined) {
+ formData.append(`image`, updatePosterBody.image)
+ }
+formData.append(`posterRequest`, JSON.stringify(updatePosterBody.posterRequest));
+
+      return customMutator<void>(
+      {url: `/display/posters/${posterId}`, method: 'PATCH',
+      headers: {'Content-Type': 'multipart/form-data', },
+       data: formData
+    },
+      );
+    }
+  
+
+
+export const getUpdatePosterMutationOptions = <TError = ErrorResponse,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updatePoster>>, TError,{posterId: number;data: UpdatePosterBody}, TContext>, }
+): UseMutationOptions<Awaited<ReturnType<typeof updatePoster>>, TError,{posterId: number;data: UpdatePosterBody}, TContext> => {
+
+const mutationKey = ['updatePoster'];
+const {mutation: mutationOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }};
+
+      
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof updatePoster>>, {posterId: number;data: UpdatePosterBody}> = (props) => {
+          const {posterId,data} = props ?? {};
+
+          return  updatePoster(posterId,data,)
+        }
+
+        
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type UpdatePosterMutationResult = NonNullable<Awaited<ReturnType<typeof updatePoster>>>
+    export type UpdatePosterMutationBody = UpdatePosterBody
+    export type UpdatePosterMutationError = ErrorResponse
+
+    /**
+ * @summary 포스터 수정
+ */
+export const useUpdatePoster = <TError = ErrorResponse,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updatePoster>>, TError,{posterId: number;data: UpdatePosterBody}, TContext>, }
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof updatePoster>>,
+        TError,
+        {posterId: number;data: UpdatePosterBody},
+        TContext
+      > => {
+
+      const mutationOptions = getUpdatePosterMutationOptions(options);
+
+      return useMutation(mutationOptions , queryClient);
+    }
+    
+/**
+ * 해당일 일정을 삭제하는 API
+ * @summary 일정 삭제
+ */
+export const deleteSchedule = (
+    id: number,
+ ) => {
+      
+      
+      return customMutator<void>(
+      {url: `/display/calendar-schedules/${id}`, method: 'DELETE'
+    },
+      );
+    }
+  
+
+
+export const getDeleteScheduleMutationOptions = <TError = ErrorResponse,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteSchedule>>, TError,{id: number}, TContext>, }
+): UseMutationOptions<Awaited<ReturnType<typeof deleteSchedule>>, TError,{id: number}, TContext> => {
+
+const mutationKey = ['deleteSchedule'];
+const {mutation: mutationOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }};
+
+      
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof deleteSchedule>>, {id: number}> = (props) => {
+          const {id} = props ?? {};
+
+          return  deleteSchedule(id,)
+        }
+
+        
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type DeleteScheduleMutationResult = NonNullable<Awaited<ReturnType<typeof deleteSchedule>>>
+    
+    export type DeleteScheduleMutationError = ErrorResponse
+
+    /**
+ * @summary 일정 삭제
+ */
+export const useDeleteSchedule = <TError = ErrorResponse,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteSchedule>>, TError,{id: number}, TContext>, }
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof deleteSchedule>>,
+        TError,
+        {id: number},
+        TContext
+      > => {
+
+      const mutationOptions = getDeleteScheduleMutationOptions(options);
+
+      return useMutation(mutationOptions , queryClient);
+    }
+    
+/**
+ * 해당일 일정을 수정하는 API
+ * @summary 일정 수정
+ */
+export const updateSchedule = (
+    id: number,
+    displayCalendarScheduleRequest: DisplayCalendarScheduleRequest,
+ ) => {
+      
+      
+      return customMutator<void>(
+      {url: `/display/calendar-schedules/${id}`, method: 'PATCH',
+      headers: {'Content-Type': 'application/json', },
+      data: displayCalendarScheduleRequest
+    },
+      );
+    }
+  
+
+
+export const getUpdateScheduleMutationOptions = <TError = ErrorResponse,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateSchedule>>, TError,{id: number;data: DisplayCalendarScheduleRequest}, TContext>, }
+): UseMutationOptions<Awaited<ReturnType<typeof updateSchedule>>, TError,{id: number;data: DisplayCalendarScheduleRequest}, TContext> => {
+
+const mutationKey = ['updateSchedule'];
+const {mutation: mutationOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }};
+
+      
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof updateSchedule>>, {id: number;data: DisplayCalendarScheduleRequest}> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  updateSchedule(id,data,)
+        }
+
+        
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type UpdateScheduleMutationResult = NonNullable<Awaited<ReturnType<typeof updateSchedule>>>
+    export type UpdateScheduleMutationBody = DisplayCalendarScheduleRequest
+    export type UpdateScheduleMutationError = ErrorResponse
+
+    /**
+ * @summary 일정 수정
+ */
+export const useUpdateSchedule = <TError = ErrorResponse,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateSchedule>>, TError,{id: number;data: DisplayCalendarScheduleRequest}, TContext>, }
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof updateSchedule>>,
+        TError,
+        {id: number;data: DisplayCalendarScheduleRequest},
+        TContext
+      > => {
+
+      const mutationOptions = getUpdateScheduleMutationOptions(options);
+
+      return useMutation(mutationOptions , queryClient);
+    }
+    
+/**
  * 대여 기록을 임의로 삭제하는 관리자용 API
  * @summary 대여 기록 삭제 (관리자용)
  */
@@ -2545,3 +3192,69 @@ export function useCreatePayerExcel<TData = Awaited<ReturnType<typeof createPaye
 
   return query;
 }
+
+
+
+
+/**
+ * 포스터를 비활성화하는 API
+ * @summary 포스터 비활성화
+ */
+export const deactivatePoster = (
+    posterId: number,
+ ) => {
+      
+      
+      return customMutator<void>(
+      {url: `/display/posters/${posterId}/deactivate`, method: 'DELETE'
+    },
+      );
+    }
+  
+
+
+export const getDeactivatePosterMutationOptions = <TError = ErrorResponse,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deactivatePoster>>, TError,{posterId: number}, TContext>, }
+): UseMutationOptions<Awaited<ReturnType<typeof deactivatePoster>>, TError,{posterId: number}, TContext> => {
+
+const mutationKey = ['deactivatePoster'];
+const {mutation: mutationOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }};
+
+      
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof deactivatePoster>>, {posterId: number}> = (props) => {
+          const {posterId} = props ?? {};
+
+          return  deactivatePoster(posterId,)
+        }
+
+        
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type DeactivatePosterMutationResult = NonNullable<Awaited<ReturnType<typeof deactivatePoster>>>
+    
+    export type DeactivatePosterMutationError = ErrorResponse
+
+    /**
+ * @summary 포스터 비활성화
+ */
+export const useDeactivatePoster = <TError = ErrorResponse,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deactivatePoster>>, TError,{posterId: number}, TContext>, }
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof deactivatePoster>>,
+        TError,
+        {posterId: number},
+        TContext
+      > => {
+
+      const mutationOptions = getDeactivatePosterMutationOptions(options);
+
+      return useMutation(mutationOptions , queryClient);
+    }

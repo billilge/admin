@@ -9,6 +9,7 @@ import { addAdmins } from '@/api-client';
 import { AdminRequest } from '@/api-client/model';
 import AddAdminModal from '@/components/modal/AddAdminModal';
 import TableSkeleton from '@/components/ui/table-skeleton';
+import { AdminRole } from '@/types/modal';
 import { Student } from '@/types/student';
 
 export default function AdminPage() {
@@ -56,9 +57,10 @@ export default function AdminPage() {
     },
   });
 
-  const handleAddAdmins = (selectedStudents: Student[]) => {
+  const handleAddAdmins = (selectedStudents: Student[], role: AdminRole) => {
     const requestData: AdminRequest = {
       memberIds: selectedStudents.map((s) => s.id),
+      role,
     };
     addAdminsMutation.mutate(requestData);
     setIsModalOpen(false);
