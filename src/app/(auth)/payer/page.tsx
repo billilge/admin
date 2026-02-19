@@ -10,14 +10,15 @@ import {
   XCircle,
   FileDown,
   Trash2,
+  Loader2,
 } from 'lucide-react';
 import { useState, useRef, useEffect } from 'react';
 import toast from 'react-hot-toast';
 import { useGetAllPayers, useDeletePayers } from '@/api-client';
 import { useAddPayers } from '@/api-client';
-import { createPayerExcel } from '@/api-client';
 import AddPayerModal from '@/components/modal/AddPayerModal';
 import TableSkeleton from '@/components/ui/table-skeleton';
+import { apiClient } from '@/lib/axios';
 import { Payer } from '@/types/payer';
 
 export default function PayerPage() {
@@ -25,6 +26,7 @@ export default function PayerPage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [searchInput, setSearchInput] = useState('');
   const [searchKeyword, setSearchKeyword] = useState('');
+  const [isDownloading, setIsDownloading] = useState(false);
   const cachedTotalPages = useRef(1);
 
   const { data, isLoading } = useGetAllPayers(
@@ -86,10 +88,13 @@ export default function PayerPage() {
   };
 
   const handleExcelDownload = async () => {
+    setIsDownloading(true);
     try {
-      const response = await createPayerExcel();
+      const response = await apiClient.get('/admin/members/payers/excel', {
+        responseType: 'blob',
+      });
 
-      const blob = new Blob([response as BlobPart], {
+      const blob = new Blob([response.data], {
         type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
       });
 
@@ -105,6 +110,8 @@ export default function PayerPage() {
     } catch (error) {
       console.error('엑셀 다운로드 오류:', error);
       toast.error('엑셀 다운로드에 실패했습니다.');
+    } finally {
+      setIsDownloading(false);
     }
   };
 
@@ -169,7 +176,7 @@ export default function PayerPage() {
                   학번
                 </th>
                 <th className="whitespace-nowrap px-4 py-3.5 text-left text-xs font-semibold uppercase tracking-wider text-[var(--foreground-muted)]">
-                  빌릴게 d회원 여부
+                  빌릴게 회원 여부
                 </th>
                 <th className="whitespace-nowrap px-4 py-3.5 text-center text-xs font-semibold uppercase tracking-wider text-[var(--foreground-muted)] w-16">
                   관리
@@ -267,6 +274,15 @@ export default function PayerPage() {
         onClose={() => setIsModalOpen(false)}
         onApply={handleAddPayers}
       />
+
+      {isDownloading && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
+          <div className="flex flex-col items-center gap-3 rounded-xl bg-[var(--card)] px-8 py-6 shadow-lg">
+            <Loader2 className="h-8 w-8 animate-spin text-[var(--primary)]" />
+            <p className="text-sm font-medium text-[var(--foreground)]">엑셀 파일을 다운로드 중입니다...</p>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

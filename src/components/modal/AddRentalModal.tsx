@@ -25,9 +25,6 @@ export default function AddRentalModal({ isOpen, onClose, onApply }: RentalAddMo
   const [staffSearchTerm, setStaffSearchTerm] = useState('');
   const [rentalDate, setRentalDate] = useState('');
   const [rentalTime, setRentalTime] = useState('');
-  const [studentFocused, setStudentFocused] = useState(false);
-  const [itemFocused, setItemFocused] = useState(false);
-  const [staffFocused, setStaffFocused] = useState(false);
 
   useEffect(() => {
     if (isOpen) {
@@ -42,15 +39,8 @@ export default function AddRentalModal({ isOpen, onClose, onApply }: RentalAddMo
   const { data: staffsData } = useGetAdminList({ search: staffSearchTerm });
 
   const students = studentsData?.members ?? [];
-  const items = itemData?.items ?? [];
+  const items = (itemData?.items ?? []).filter((item) => item.itemType === 'RENTAL');
   const staffs = staffsData?.admins ?? [];
-
-  const filteredItems = items.filter(
-    (item) =>
-      item.itemName.includes(itemSearchTerm) &&
-      item.itemType === 'RENTAL' &&
-      item.renterCount < item.count,
-  );
 
   const filteredStaffs = staffs.filter(
     (staff) => staff.name.includes(staffSearchTerm) || staff.studentId.includes(staffSearchTerm),
@@ -107,30 +97,30 @@ export default function AddRentalModal({ isOpen, onClose, onApply }: RentalAddMo
             <input
               type="text"
               value={studentSearchTerm}
-              onChange={(e) => setStudentSearchTerm(e.target.value)}
+              onChange={(e) => {
+                setStudentSearchTerm(e.target.value);
+                setSelectedStudent(null);
+              }}
               className="mt-1 w-full rounded-lg border border-[var(--border)] bg-[var(--input)] px-3 py-2 text-[var(--foreground)] placeholder:text-[var(--foreground-subtle)] focus:border-[var(--primary)] focus:outline-none"
               placeholder="이름 또는 학번"
             />
-            <div className="mt-1 border border-[var(--border)] rounded-lg max-h-32 overflow-y-auto">
-              {(studentFocused || studentSearchTerm) && (
-                <div className="mt-1 border border-[var(--border)] rounded-lg max-h-32 overflow-y-auto">
-                  {students.map((student) => (
-                    <div
-                      key={student.memberId}
-                      className="px-3 py-2 cursor-pointer hover:bg-[var(--background-hover)]"
-                      onClick={() => {
-                        setSelectedStudent(student);
-                        setStudentSearchTerm(`${student.name} (${student.studentId})`);
-                        setStudentFocused(false);
-                      }}
-                    >
-                      <div className="text-sm font-medium text-[var(--foreground)]">{student.name}</div>
-                      <div className="text-xs text-[var(--foreground-muted)]">{student.studentId}</div>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
+            {!selectedStudent && students.length > 0 && (
+              <div className="mt-1 border border-[var(--border)] rounded-lg max-h-32 overflow-y-auto">
+                {students.map((student) => (
+                  <div
+                    key={student.memberId}
+                    className="px-3 py-2 cursor-pointer hover:bg-[var(--background-hover)]"
+                    onClick={() => {
+                      setSelectedStudent(student);
+                      setStudentSearchTerm(`${student.name} (${student.studentId})`);
+                    }}
+                  >
+                    <div className="text-sm font-medium text-[var(--foreground)]">{student.name}</div>
+                    <div className="text-xs text-[var(--foreground-muted)]">{student.studentId}</div>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
 
           <div>
@@ -138,13 +128,16 @@ export default function AddRentalModal({ isOpen, onClose, onApply }: RentalAddMo
             <input
               type="text"
               value={itemSearchTerm}
-              onChange={(e) => setItemSearchTerm(e.target.value)}
+              onChange={(e) => {
+                setItemSearchTerm(e.target.value);
+                setSelectedItem(null);
+              }}
               className="mt-1 w-full rounded-lg border border-[var(--border)] bg-[var(--input)] px-3 py-2 text-[var(--foreground)] placeholder:text-[var(--foreground-subtle)] focus:border-[var(--primary)] focus:outline-none"
               placeholder="물품명"
             />
-            {(itemFocused || itemSearchTerm) && (
+            {!selectedItem && items.length > 0 && (
               <div className="mt-1 border border-[var(--border)] rounded-lg max-h-32 overflow-y-auto">
-                {filteredItems.map((item) => (
+                {items.map((item) => (
                   <div
                     key={item.itemId}
                     className="px-3 py-2 cursor-pointer hover:bg-[var(--background-hover)]"
@@ -155,7 +148,7 @@ export default function AddRentalModal({ isOpen, onClose, onApply }: RentalAddMo
                   >
                     <div className="text-sm font-medium text-[var(--foreground)]">{item.itemName}</div>
                     <div className="text-xs text-[var(--foreground-muted)]">
-                      남은 수량: {item.count - item.renterCount}/{item.count}
+                      수량: {item.count}
                     </div>
                   </div>
                 ))}
@@ -189,11 +182,14 @@ export default function AddRentalModal({ isOpen, onClose, onApply }: RentalAddMo
             <input
               type="text"
               value={staffSearchTerm}
-              onChange={(e) => setStaffSearchTerm(e.target.value)}
+              onChange={(e) => {
+                setStaffSearchTerm(e.target.value);
+                setSelectedStaff(null);
+              }}
               className="mt-1 w-full rounded-lg border border-[var(--border)] bg-[var(--input)] px-3 py-2 text-[var(--foreground)] placeholder:text-[var(--foreground-subtle)] focus:border-[var(--primary)] focus:outline-none"
               placeholder="이름 또는 학번"
             />
-            {(staffFocused || staffSearchTerm) && (
+            {!selectedStaff && filteredStaffs.length > 0 && (
               <div className="mt-1 border border-[var(--border)] rounded-lg max-h-32 overflow-y-auto">
                 {filteredStaffs.map((staff) => (
                   <div

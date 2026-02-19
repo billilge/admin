@@ -1,13 +1,26 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Calendar, Lock, Save } from 'lucide-react';
 import toast from 'react-hot-toast';
+import {
+  getGetAllByKeysQueryOptions,
+  getGetAllByKeysQueryKey,
+  useUpdateAll,
+  useChangeAdminPassword,
+} from '@/api-client';
+
+const EXAM_PERIOD_KEYS = ['exam-period.start-date', 'exam-period.end-date'];
 
 export default function SettingPage() {
+  const router = useRouter();
+  const queryClient = useQueryClient();
+
   const [examPeriod, setExamPeriod] = useState({
-    startDate: '2025-06-15',
-    endDate: '2025-06-21',
+    startDate: '',
+    endDate: '',
   });
 
   const [passwordForm, setPasswordForm] = useState({
@@ -16,8 +29,61 @@ export default function SettingPage() {
     confirmPassword: '',
   });
 
+  const { data: configData } = useQuery({
+    ...getGetAllByKeysQueryOptions({ keys: EXAM_PERIOD_KEYS }),
+    staleTime: 1000 * 60 * 3,
+  });
+
+  useEffect(() => {
+    if (configData?.configValues) {
+      const startDate = configData.configValues.find(
+        (v) => v.key === 'exam-period.start-date'
+      )?.value ?? '';
+      const endDate = configData.configValues.find(
+        (v) => v.key === 'exam-period.end-date'
+      )?.value ?? '';
+      setExamPeriod({ startDate, endDate });
+    }
+  }, [configData]);
+
+  const { mutate: updateExamPeriod, isPending: isUpdatingExamPeriod } = useUpdateAll({
+    mutation: {
+      onSuccess: () => {
+        queryClient.invalidateQueries({
+          queryKey: getGetAllByKeysQueryKey({ keys: EXAM_PERIOD_KEYS }),
+        });
+        toast.success('시험기간이 저장되었습니다.');
+      },
+      onError: (error: any) => {
+        const message = error?.response?.data?.message || '시험기간 저장에 실패했습니다.';
+        toast.error(message);
+      },
+    },
+  });
+
+  const { mutate: changePassword, isPending: isChangingPassword } = useChangeAdminPassword({
+    mutation: {
+      onSuccess: () => {
+        toast.success('비밀번호가 변경되었습니다. 다시 로그인해주세요.');
+        localStorage.removeItem('token');
+        router.push('/login');
+      },
+      onError: (error: any) => {
+        const message = error?.response?.data?.message || '비밀번호 변경에 실패했습니다.';
+        toast.error(message);
+      },
+    },
+  });
+
   const handleExamPeriodSave = () => {
-    toast.success('시험기간이 저장되었습니다.');
+    updateExamPeriod({
+      data: {
+        configValues: [
+          { key: 'exam-period.start-date', value: examPeriod.startDate },
+          { key: 'exam-period.end-date', value: examPeriod.endDate },
+        ],
+      },
+    });
   };
 
   const handlePasswordChange = () => {
@@ -33,8 +99,12 @@ export default function SettingPage() {
       toast.error('비밀번호는 4자 이상이어야 합니다.');
       return;
     }
-    toast.success('비밀번호가 변경되었습니다.');
-    setPasswordForm({ currentPassword: '', newPassword: '', confirmPassword: '' });
+    changePassword({
+      data: {
+        currentPassword: passwordForm.currentPassword,
+        newPassword: passwordForm.newPassword,
+      },
+    });
   };
 
   return (
@@ -85,10 +155,11 @@ export default function SettingPage() {
             </div>
             <button
               onClick={handleExamPeriodSave}
-              className="flex h-10 shrink-0 items-center gap-2 rounded-lg bg-[var(--primary)] px-4 text-sm font-medium text-[var(--primary-foreground)] hover:bg-[var(--primary-hover)] focus:outline-none focus:ring-2 focus:ring-[var(--primary)] focus:ring-offset-2 cursor-pointer"
+              disabled={isUpdatingExamPeriod}
+              className="flex h-10 shrink-0 items-center gap-2 rounded-lg bg-[var(--primary)] px-4 text-sm font-medium text-[var(--primary-foreground)] hover:bg-[var(--primary-hover)] focus:outline-none focus:ring-2 focus:ring-[var(--primary)] focus:ring-offset-2 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <Save className="h-4 w-4" />
-              저장
+              {isUpdatingExamPeriod ? '저장 중...' : '저장'}
             </button>
           </div>
         </div>
@@ -152,10 +223,11 @@ export default function SettingPage() {
             <div className="pt-2">
               <button
                 onClick={handlePasswordChange}
-                className="flex h-10 items-center gap-2 rounded-lg bg-[var(--primary)] px-4 text-sm font-medium text-[var(--primary-foreground)] hover:bg-[var(--primary-hover)] focus:outline-none focus:ring-2 focus:ring-[var(--primary)] focus:ring-offset-2 cursor-pointer"
+                disabled={isChangingPassword}
+                className="flex h-10 items-center gap-2 rounded-lg bg-[var(--primary)] px-4 text-sm font-medium text-[var(--primary-foreground)] hover:bg-[var(--primary-hover)] focus:outline-none focus:ring-2 focus:ring-[var(--primary)] focus:ring-offset-2 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 <Lock className="h-4 w-4" />
-                비밀번호 변경
+                {isChangingPassword ? '변경 중...' : '비밀번호 변경'}
               </button>
             </div>
           </div>

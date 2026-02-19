@@ -34,17 +34,26 @@ import type {
   AdminRentalHistoryFindAllResponse,
   AdminRentalHistoryRequest,
   AdminRequest,
+  AdminRoleUpdateRequest,
+  ChangeAdminPasswordRequest,
+  ConfigValueBulkUpdateRequest,
+  ConfigValueDetail,
+  ConfigValueFindAllResponse,
+  ConfigValueUpdateRequest,
   DashboardResponse,
   DisplayCalendarScheduleFindAllResponse,
   DisplayCalendarScheduleRequest,
   DisplayPosterFindAllResponse,
+  DisplayResponse,
   ErrorResponse,
   GetAdminListParams,
   GetAllAdminItemsParams,
+  GetAllByKeysParams,
   GetAllDashboardApplicationsParams,
   GetAllMembersParams,
   GetAllPayersParams,
   GetAllRentalHistoriesParams,
+  GetByKeyParams,
   GetItemsParams,
   GetMemberRentalHistoryParams,
   GetSchedulesParams,
@@ -61,6 +70,7 @@ import type {
   RentalHistoryRequest,
   RentalStatusUpdateRequest,
   ReturnRequiredItemFindAllResponse,
+  SearchItemsParams,
   SignUpRequest,
   SignUpResponse,
   UpdateItemBody,
@@ -285,6 +295,316 @@ export const useDeleteItem = <TError = ErrorResponse,
       > => {
 
       const mutationOptions = getDeleteItemMutationOptions(options);
+
+      return useMutation(mutationOptions , queryClient);
+    }
+    
+/**
+ * 키로 설정값을 조회하는 API
+ * @summary 설정값 조회
+ */
+export const getByKey = (
+    params: GetByKeyParams,
+ signal?: AbortSignal
+) => {
+      
+      
+      return customMutator<ConfigValueDetail>(
+      {url: `/admin/config-values`, method: 'GET',
+        params, signal
+    },
+      );
+    }
+  
+
+export const getGetByKeyQueryKey = (params: GetByKeyParams,) => {
+    return [`/admin/config-values`, ...(params ? [params]: [])] as const;
+    }
+
+    
+export const getGetByKeyQueryOptions = <TData = Awaited<ReturnType<typeof getByKey>>, TError = ConfigValueDetail>(params: GetByKeyParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getByKey>>, TError, TData>>, }
+) => {
+
+const {query: queryOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetByKeyQueryKey(params);
+
+  
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getByKey>>> = ({ signal }) => getByKey(params, signal);
+
+      
+
+      
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getByKey>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type GetByKeyQueryResult = NonNullable<Awaited<ReturnType<typeof getByKey>>>
+export type GetByKeyQueryError = ConfigValueDetail
+
+
+export function useGetByKey<TData = Awaited<ReturnType<typeof getByKey>>, TError = ConfigValueDetail>(
+ params: GetByKeyParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getByKey>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getByKey>>,
+          TError,
+          Awaited<ReturnType<typeof getByKey>>
+        > , 'initialData'
+      >, }
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetByKey<TData = Awaited<ReturnType<typeof getByKey>>, TError = ConfigValueDetail>(
+ params: GetByKeyParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getByKey>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getByKey>>,
+          TError,
+          Awaited<ReturnType<typeof getByKey>>
+        > , 'initialData'
+      >, }
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetByKey<TData = Awaited<ReturnType<typeof getByKey>>, TError = ConfigValueDetail>(
+ params: GetByKeyParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getByKey>>, TError, TData>>, }
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * @summary 설정값 조회
+ */
+
+export function useGetByKey<TData = Awaited<ReturnType<typeof getByKey>>, TError = ConfigValueDetail>(
+ params: GetByKeyParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getByKey>>, TError, TData>>, }
+ , queryClient?: QueryClient 
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getGetByKeyQueryOptions(params,options)
+
+  const query = useQuery(queryOptions , queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  query.queryKey = queryOptions.queryKey ;
+
+  return query;
+}
+
+
+
+
+/**
+ * 설정값을 수정하는 API (존재하지 않으면 생성)
+ * @summary 설정값 수정
+ */
+export const update = (
+    configValueUpdateRequest: ConfigValueUpdateRequest,
+ ) => {
+      
+      
+      return customMutator<void>(
+      {url: `/admin/config-values`, method: 'PUT',
+      headers: {'Content-Type': 'application/json', },
+      data: configValueUpdateRequest
+    },
+      );
+    }
+  
+
+
+export const getUpdateMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof update>>, TError,{data: ConfigValueUpdateRequest}, TContext>, }
+): UseMutationOptions<Awaited<ReturnType<typeof update>>, TError,{data: ConfigValueUpdateRequest}, TContext> => {
+
+const mutationKey = ['update'];
+const {mutation: mutationOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }};
+
+      
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof update>>, {data: ConfigValueUpdateRequest}> = (props) => {
+          const {data} = props ?? {};
+
+          return  update(data,)
+        }
+
+        
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type UpdateMutationResult = NonNullable<Awaited<ReturnType<typeof update>>>
+    export type UpdateMutationBody = ConfigValueUpdateRequest
+    export type UpdateMutationError = unknown
+
+    /**
+ * @summary 설정값 수정
+ */
+export const useUpdate = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof update>>, TError,{data: ConfigValueUpdateRequest}, TContext>, }
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof update>>,
+        TError,
+        {data: ConfigValueUpdateRequest},
+        TContext
+      > => {
+
+      const mutationOptions = getUpdateMutationOptions(options);
+
+      return useMutation(mutationOptions , queryClient);
+    }
+    
+/**
+ * 여러 키로 설정값을 일괄 조회하는 API
+ * @summary 설정값 일괄 조회
+ */
+export const getAllByKeys = (
+    params: GetAllByKeysParams,
+ signal?: AbortSignal
+) => {
+      
+      
+      return customMutator<ConfigValueFindAllResponse>(
+      {url: `/admin/config-values/bulk`, method: 'GET',
+        params, signal
+    },
+      );
+    }
+  
+
+export const getGetAllByKeysQueryKey = (params: GetAllByKeysParams,) => {
+    return [`/admin/config-values/bulk`, ...(params ? [params]: [])] as const;
+    }
+
+    
+export const getGetAllByKeysQueryOptions = <TData = Awaited<ReturnType<typeof getAllByKeys>>, TError = unknown>(params: GetAllByKeysParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getAllByKeys>>, TError, TData>>, }
+) => {
+
+const {query: queryOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetAllByKeysQueryKey(params);
+
+  
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getAllByKeys>>> = ({ signal }) => getAllByKeys(params, signal);
+
+      
+
+      
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getAllByKeys>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type GetAllByKeysQueryResult = NonNullable<Awaited<ReturnType<typeof getAllByKeys>>>
+export type GetAllByKeysQueryError = unknown
+
+
+export function useGetAllByKeys<TData = Awaited<ReturnType<typeof getAllByKeys>>, TError = unknown>(
+ params: GetAllByKeysParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getAllByKeys>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getAllByKeys>>,
+          TError,
+          Awaited<ReturnType<typeof getAllByKeys>>
+        > , 'initialData'
+      >, }
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetAllByKeys<TData = Awaited<ReturnType<typeof getAllByKeys>>, TError = unknown>(
+ params: GetAllByKeysParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getAllByKeys>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getAllByKeys>>,
+          TError,
+          Awaited<ReturnType<typeof getAllByKeys>>
+        > , 'initialData'
+      >, }
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetAllByKeys<TData = Awaited<ReturnType<typeof getAllByKeys>>, TError = unknown>(
+ params: GetAllByKeysParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getAllByKeys>>, TError, TData>>, }
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * @summary 설정값 일괄 조회
+ */
+
+export function useGetAllByKeys<TData = Awaited<ReturnType<typeof getAllByKeys>>, TError = unknown>(
+ params: GetAllByKeysParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getAllByKeys>>, TError, TData>>, }
+ , queryClient?: QueryClient 
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getGetAllByKeysQueryOptions(params,options)
+
+  const query = useQuery(queryOptions , queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  query.queryKey = queryOptions.queryKey ;
+
+  return query;
+}
+
+
+
+
+/**
+ * 여러 설정값을 일괄 수정하는 API (존재하지 않으면 생성)
+ * @summary 설정값 일괄 수정
+ */
+export const updateAll = (
+    configValueBulkUpdateRequest: ConfigValueBulkUpdateRequest,
+ ) => {
+      
+      
+      return customMutator<void>(
+      {url: `/admin/config-values/bulk`, method: 'PUT',
+      headers: {'Content-Type': 'application/json', },
+      data: configValueBulkUpdateRequest
+    },
+      );
+    }
+  
+
+
+export const getUpdateAllMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateAll>>, TError,{data: ConfigValueBulkUpdateRequest}, TContext>, }
+): UseMutationOptions<Awaited<ReturnType<typeof updateAll>>, TError,{data: ConfigValueBulkUpdateRequest}, TContext> => {
+
+const mutationKey = ['updateAll'];
+const {mutation: mutationOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }};
+
+      
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof updateAll>>, {data: ConfigValueBulkUpdateRequest}> = (props) => {
+          const {data} = props ?? {};
+
+          return  updateAll(data,)
+        }
+
+        
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type UpdateAllMutationResult = NonNullable<Awaited<ReturnType<typeof updateAll>>>
+    export type UpdateAllMutationBody = ConfigValueBulkUpdateRequest
+    export type UpdateAllMutationError = unknown
+
+    /**
+ * @summary 설정값 일괄 수정
+ */
+export const useUpdateAll = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateAll>>, TError,{data: ConfigValueBulkUpdateRequest}, TContext>, }
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof updateAll>>,
+        TError,
+        {data: ConfigValueBulkUpdateRequest},
+        TContext
+      > => {
+
+      const mutationOptions = getUpdateAllMutationOptions(options);
 
       return useMutation(mutationOptions , queryClient);
     }
@@ -2482,6 +2802,137 @@ export const useUpdateRentalStatus = <TError = unknown,
     }
     
 /**
+ * 관리자의 역할을 변경하는 API
+ * @summary 관리자 역할 변경
+ */
+export const updateAdminRole = (
+    memberId: number,
+    adminRoleUpdateRequest: AdminRoleUpdateRequest,
+ ) => {
+      
+      
+      return customMutator<void>(
+      {url: `/admin/members/${memberId}/admins`, method: 'PATCH',
+      headers: {'Content-Type': 'application/json', },
+      data: adminRoleUpdateRequest
+    },
+      );
+    }
+  
+
+
+export const getUpdateAdminRoleMutationOptions = <TError = ErrorResponse,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateAdminRole>>, TError,{memberId: number;data: AdminRoleUpdateRequest}, TContext>, }
+): UseMutationOptions<Awaited<ReturnType<typeof updateAdminRole>>, TError,{memberId: number;data: AdminRoleUpdateRequest}, TContext> => {
+
+const mutationKey = ['updateAdminRole'];
+const {mutation: mutationOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }};
+
+      
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof updateAdminRole>>, {memberId: number;data: AdminRoleUpdateRequest}> = (props) => {
+          const {memberId,data} = props ?? {};
+
+          return  updateAdminRole(memberId,data,)
+        }
+
+        
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type UpdateAdminRoleMutationResult = NonNullable<Awaited<ReturnType<typeof updateAdminRole>>>
+    export type UpdateAdminRoleMutationBody = AdminRoleUpdateRequest
+    export type UpdateAdminRoleMutationError = ErrorResponse
+
+    /**
+ * @summary 관리자 역할 변경
+ */
+export const useUpdateAdminRole = <TError = ErrorResponse,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateAdminRole>>, TError,{memberId: number;data: AdminRoleUpdateRequest}, TContext>, }
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof updateAdminRole>>,
+        TError,
+        {memberId: number;data: AdminRoleUpdateRequest},
+        TContext
+      > => {
+
+      const mutationOptions = getUpdateAdminRoleMutationOptions(options);
+
+      return useMutation(mutationOptions , queryClient);
+    }
+    
+/**
+ * 현재 비밀번호를 검증 후 새 비밀번호로 변경하는 API
+ * @summary 관리자 비밀번호 변경
+ */
+export const changeAdminPassword = (
+    changeAdminPasswordRequest: ChangeAdminPasswordRequest,
+ ) => {
+      
+      
+      return customMutator<void>(
+      {url: `/admin/config-values/password`, method: 'PATCH',
+      headers: {'Content-Type': 'application/json', },
+      data: changeAdminPasswordRequest
+    },
+      );
+    }
+  
+
+
+export const getChangeAdminPasswordMutationOptions = <TError = void,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof changeAdminPassword>>, TError,{data: ChangeAdminPasswordRequest}, TContext>, }
+): UseMutationOptions<Awaited<ReturnType<typeof changeAdminPassword>>, TError,{data: ChangeAdminPasswordRequest}, TContext> => {
+
+const mutationKey = ['changeAdminPassword'];
+const {mutation: mutationOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }};
+
+      
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof changeAdminPassword>>, {data: ChangeAdminPasswordRequest}> = (props) => {
+          const {data} = props ?? {};
+
+          return  changeAdminPassword(data,)
+        }
+
+        
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type ChangeAdminPasswordMutationResult = NonNullable<Awaited<ReturnType<typeof changeAdminPassword>>>
+    export type ChangeAdminPasswordMutationBody = ChangeAdminPasswordRequest
+    export type ChangeAdminPasswordMutationError = void
+
+    /**
+ * @summary 관리자 비밀번호 변경
+ */
+export const useChangeAdminPassword = <TError = void,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof changeAdminPassword>>, TError,{data: ChangeAdminPasswordRequest}, TContext>, }
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof changeAdminPassword>>,
+        TError,
+        {data: ChangeAdminPasswordRequest},
+        TContext
+      > => {
+
+      const mutationOptions = getChangeAdminPasswordMutationOptions(options);
+
+      return useMutation(mutationOptions , queryClient);
+    }
+    
+/**
  * 로그인한 사용자의 대여 기록 중, 대여 상태가 RENTAL, RETURN_PENDING, RETURN_CONFIRMED인 항목들을 조회하는 API
  * @summary 본인의 반납 필요 대여 기록 조회
  */
@@ -2827,6 +3278,95 @@ export function useGetItems<TData = Awaited<ReturnType<typeof getItems>>, TError
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
 
   const queryOptions = getGetItemsQueryOptions(params,options)
+
+  const query = useQuery(queryOptions , queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  query.queryKey = queryOptions.queryKey ;
+
+  return query;
+}
+
+
+
+
+/**
+ * 활성 포스터, 일정 캘린더(±3일), 복지물품 현황을 조회하는 API
+ * @summary 디스플레이 데이터 조회
+ */
+export const getDisplay = (
+    
+ signal?: AbortSignal
+) => {
+      
+      
+      return customMutator<DisplayResponse>(
+      {url: `/display`, method: 'GET', signal
+    },
+      );
+    }
+  
+
+export const getGetDisplayQueryKey = () => {
+    return [`/display`] as const;
+    }
+
+    
+export const getGetDisplayQueryOptions = <TData = Awaited<ReturnType<typeof getDisplay>>, TError = unknown>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getDisplay>>, TError, TData>>, }
+) => {
+
+const {query: queryOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetDisplayQueryKey();
+
+  
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getDisplay>>> = ({ signal }) => getDisplay(signal);
+
+      
+
+      
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getDisplay>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type GetDisplayQueryResult = NonNullable<Awaited<ReturnType<typeof getDisplay>>>
+export type GetDisplayQueryError = unknown
+
+
+export function useGetDisplay<TData = Awaited<ReturnType<typeof getDisplay>>, TError = unknown>(
+  options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getDisplay>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getDisplay>>,
+          TError,
+          Awaited<ReturnType<typeof getDisplay>>
+        > , 'initialData'
+      >, }
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetDisplay<TData = Awaited<ReturnType<typeof getDisplay>>, TError = unknown>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getDisplay>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getDisplay>>,
+          TError,
+          Awaited<ReturnType<typeof getDisplay>>
+        > , 'initialData'
+      >, }
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetDisplay<TData = Awaited<ReturnType<typeof getDisplay>>, TError = unknown>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getDisplay>>, TError, TData>>, }
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * @summary 디스플레이 데이터 조회
+ */
+
+export function useGetDisplay<TData = Awaited<ReturnType<typeof getDisplay>>, TError = unknown>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getDisplay>>, TError, TData>>, }
+ , queryClient?: QueryClient 
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getGetDisplayQueryOptions(options)
 
   const query = useQuery(queryOptions , queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 
@@ -3185,6 +3725,96 @@ export function useCreatePayerExcel<TData = Awaited<ReturnType<typeof createPaye
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
 
   const queryOptions = getCreatePayerExcelQueryOptions(options)
+
+  const query = useQuery(queryOptions , queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  query.queryKey = queryOptions.queryKey ;
+
+  return query;
+}
+
+
+
+
+/**
+ * 물품 이름으로 물품을 검색하는 관리자용 API
+ * @summary 물품 이름 검색
+ */
+export const searchItems = (
+    params?: SearchItemsParams,
+ signal?: AbortSignal
+) => {
+      
+      
+      return customMutator<ItemFindAllResponse>(
+      {url: `/admin/items/search`, method: 'GET',
+        params, signal
+    },
+      );
+    }
+  
+
+export const getSearchItemsQueryKey = (params?: SearchItemsParams,) => {
+    return [`/admin/items/search`, ...(params ? [params]: [])] as const;
+    }
+
+    
+export const getSearchItemsQueryOptions = <TData = Awaited<ReturnType<typeof searchItems>>, TError = unknown>(params?: SearchItemsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof searchItems>>, TError, TData>>, }
+) => {
+
+const {query: queryOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getSearchItemsQueryKey(params);
+
+  
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof searchItems>>> = ({ signal }) => searchItems(params, signal);
+
+      
+
+      
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof searchItems>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type SearchItemsQueryResult = NonNullable<Awaited<ReturnType<typeof searchItems>>>
+export type SearchItemsQueryError = unknown
+
+
+export function useSearchItems<TData = Awaited<ReturnType<typeof searchItems>>, TError = unknown>(
+ params: undefined |  SearchItemsParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof searchItems>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof searchItems>>,
+          TError,
+          Awaited<ReturnType<typeof searchItems>>
+        > , 'initialData'
+      >, }
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useSearchItems<TData = Awaited<ReturnType<typeof searchItems>>, TError = unknown>(
+ params?: SearchItemsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof searchItems>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof searchItems>>,
+          TError,
+          Awaited<ReturnType<typeof searchItems>>
+        > , 'initialData'
+      >, }
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useSearchItems<TData = Awaited<ReturnType<typeof searchItems>>, TError = unknown>(
+ params?: SearchItemsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof searchItems>>, TError, TData>>, }
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * @summary 물품 이름 검색
+ */
+
+export function useSearchItems<TData = Awaited<ReturnType<typeof searchItems>>, TError = unknown>(
+ params?: SearchItemsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof searchItems>>, TError, TData>>, }
+ , queryClient?: QueryClient 
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getSearchItemsQueryOptions(params,options)
 
   const query = useQuery(queryOptions , queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 

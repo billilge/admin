@@ -5,6 +5,7 @@
  * 국민대학교 소프트웨어융합대학 복지물품 대여 서비스
  * OpenAPI spec version: v1
  */
+import type { AdminMemberDetailRole } from './adminMemberDetailRole';
 
 export interface AdminMemberDetail {
   /** 관리자 회원 ID */
@@ -13,4 +14,6 @@ export interface AdminMemberDetail {
   name: string;
   /** 관리자 학번 */
   studentId: string;
+  /** 관리자 역할 */
+  role: AdminMemberDetailRole;
 }
