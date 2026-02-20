@@ -990,7 +990,7 @@ export const addPoster = (
       
       const formData = new FormData();
 formData.append(`image`, addPosterBody.image)
-formData.append(`posterRequest`, JSON.stringify(addPosterBody.posterRequest));
+formData.append(`posterRequest`, new Blob([JSON.stringify(addPosterBody.posterRequest)], { type: 'application/json' }));
 
       return customMutator<void>(
       {url: `/display/posters`, method: 'POST',
@@ -2485,7 +2485,7 @@ export const updatePoster = (
 if(updatePosterBody.image !== undefined) {
  formData.append(`image`, updatePosterBody.image)
  }
-formData.append(`posterRequest`, JSON.stringify(updatePosterBody.posterRequest));
+formData.append(`posterRequest`, new Blob([JSON.stringify(updatePosterBody.posterRequest)], { type: 'application/json' }));
 
       return customMutator<void>(
       {url: `/display/posters/${posterId}`, method: 'PATCH',
