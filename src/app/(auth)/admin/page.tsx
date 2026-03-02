@@ -1,13 +1,14 @@
 'use client';
 
 import { useQueryClient, useMutation } from '@tanstack/react-query';
-import { Search, Plus, ChevronLeft, ChevronRight, Trash2 } from 'lucide-react';
+import { Search, Plus, ChevronLeft, ChevronRight, Trash2, Pencil } from 'lucide-react';
 import { useState, useRef, useEffect } from 'react';
 import toast from 'react-hot-toast';
 import { useGetAdminList, deleteAdmins } from '@/api-client';
 import { addAdmins } from '@/api-client';
-import { AdminRequest, AdminMemberDetailRole } from '@/api-client/model';
+import { AdminRequest, AdminMemberDetailRole, AdminMemberDetail } from '@/api-client/model';
 import AddAdminModal from '@/components/modal/AddAdminModal';
+import UpdateRoleModal from '@/components/modal/UpdateRoleModal';
 import TableSkeleton from '@/components/ui/table-skeleton';
 import { AdminRole } from '@/types/modal';
 import { Student } from '@/types/student';
@@ -33,6 +34,7 @@ function RoleBadge({ role }: { role: AdminMemberDetailRole }) {
 export default function AdminPage() {
   const [currentPage, setCurrentPage] = useState(1);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [editTarget, setEditTarget] = useState<AdminMemberDetail | null>(null);
   const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set());
   const cachedTotalPages = useRef(1);
 
@@ -205,11 +207,14 @@ export default function AdminPage() {
                 <th className="whitespace-nowrap px-4 py-3.5 text-left text-xs font-semibold uppercase tracking-wider text-[var(--foreground-muted)]">
                   권한
                 </th>
+                <th className="whitespace-nowrap px-4 py-3.5 text-center text-xs font-semibold uppercase tracking-wider text-[var(--foreground-muted)] w-20">
+                  관리
+                </th>
               </tr>
             </thead>
             <tbody className="divide-y divide-[var(--border-muted)]">
               {isLoading ? (
-                <TableSkeleton columns={5} rows={10} />
+                <TableSkeleton columns={6} rows={10} />
               ) : (
                 admins.map((admin, index) => (
                   <tr
@@ -235,6 +240,14 @@ export default function AdminPage() {
                     </td>
                     <td className="whitespace-nowrap px-4 py-4 text-sm">
                       <RoleBadge role={admin.role} />
+                    </td>
+                    <td className="whitespace-nowrap px-4 py-4 text-center">
+                      <button
+                        onClick={() => setEditTarget(admin)}
+                        className="inline-flex h-8 w-8 items-center justify-center rounded-md text-[var(--foreground-muted)] hover:bg-[var(--background-hover)] hover:text-[var(--foreground)] transition-colors cursor-pointer"
+                      >
+                        <Pencil className="h-4 w-4" />
+                      </button>
                     </td>
                   </tr>
                 ))
@@ -288,6 +301,14 @@ export default function AdminPage() {
         onClose={() => setIsModalOpen(false)}
         onApply={handleAddAdmins}
       />
+
+      {editTarget && (
+        <UpdateRoleModal
+          isOpen={!!editTarget}
+          onClose={() => setEditTarget(null)}
+          admin={editTarget}
+        />
+      )}
     </div>
   );
 }
