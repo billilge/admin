@@ -57,6 +57,7 @@ import type {
   GetItemsParams,
   GetMemberRentalHistoryParams,
   GetSchedulesParams,
+  ItemCodeUpdateRequest,
   ItemDetail,
   ItemFindAllResponse,
   MemberFCMTokenRequest,
@@ -69,6 +70,7 @@ import type {
   RentalHistoryFindAllResponse,
   RentalHistoryRequest,
   RentalStatusUpdateRequest,
+  RentalStatusWorkerLogFindAllResponse,
   ReturnRequiredItemFindAllResponse,
   SearchItemsParams,
   SignUpRequest,
@@ -2802,6 +2804,72 @@ export const useUpdateRentalStatus = <TError = unknown,
     }
     
 /**
+ * 대여 기록의 물품 코드를 수정하는 관리자용 API
+ * @summary 물품 코드 수정
+ */
+export const updateItemCode = (
+    rentalHistoryId: number,
+    itemCodeUpdateRequest: ItemCodeUpdateRequest,
+ ) => {
+      
+      
+      return customMutator<void>(
+      {url: `/admin/rentals/${rentalHistoryId}/item-code`, method: 'PATCH',
+      headers: {'Content-Type': 'application/json', },
+      data: itemCodeUpdateRequest
+    },
+      );
+    }
+  
+
+
+export const getUpdateItemCodeMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateItemCode>>, TError,{rentalHistoryId: number;data: ItemCodeUpdateRequest}, TContext>, }
+): UseMutationOptions<Awaited<ReturnType<typeof updateItemCode>>, TError,{rentalHistoryId: number;data: ItemCodeUpdateRequest}, TContext> => {
+
+const mutationKey = ['updateItemCode'];
+const {mutation: mutationOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }};
+
+      
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof updateItemCode>>, {rentalHistoryId: number;data: ItemCodeUpdateRequest}> = (props) => {
+          const {rentalHistoryId,data} = props ?? {};
+
+          return  updateItemCode(rentalHistoryId,data,)
+        }
+
+        
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type UpdateItemCodeMutationResult = NonNullable<Awaited<ReturnType<typeof updateItemCode>>>
+    export type UpdateItemCodeMutationBody = ItemCodeUpdateRequest
+    export type UpdateItemCodeMutationError = unknown
+
+    /**
+ * @summary 물품 코드 수정
+ */
+export const useUpdateItemCode = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateItemCode>>, TError,{rentalHistoryId: number;data: ItemCodeUpdateRequest}, TContext>, }
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof updateItemCode>>,
+        TError,
+        {rentalHistoryId: number;data: ItemCodeUpdateRequest},
+        TContext
+      > => {
+
+      const mutationOptions = getUpdateItemCodeMutationOptions(options);
+
+      return useMutation(mutationOptions , queryClient);
+    }
+    
+/**
  * 관리자의 역할을 변경하는 API
  * @summary 관리자 역할 변경
  */
@@ -3367,6 +3435,95 @@ export function useGetDisplay<TData = Awaited<ReturnType<typeof getDisplay>>, TE
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
 
   const queryOptions = getGetDisplayQueryOptions(options)
+
+  const query = useQuery(queryOptions , queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  query.queryKey = queryOptions.queryKey ;
+
+  return query;
+}
+
+
+
+
+/**
+ * 대여 기록의 상태별 처리자 로그를 조회하는 관리자용 API
+ * @summary 대여 상태 변경 처리자 로그 조회
+ */
+export const getWorkerLogs = (
+    rentalHistoryId: number,
+ signal?: AbortSignal
+) => {
+      
+      
+      return customMutator<RentalStatusWorkerLogFindAllResponse>(
+      {url: `/admin/rentals/${rentalHistoryId}/workers`, method: 'GET', signal
+    },
+      );
+    }
+  
+
+export const getGetWorkerLogsQueryKey = (rentalHistoryId: number,) => {
+    return [`/admin/rentals/${rentalHistoryId}/workers`] as const;
+    }
+
+    
+export const getGetWorkerLogsQueryOptions = <TData = Awaited<ReturnType<typeof getWorkerLogs>>, TError = unknown>(rentalHistoryId: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getWorkerLogs>>, TError, TData>>, }
+) => {
+
+const {query: queryOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetWorkerLogsQueryKey(rentalHistoryId);
+
+  
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getWorkerLogs>>> = ({ signal }) => getWorkerLogs(rentalHistoryId, signal);
+
+      
+
+      
+
+   return  { queryKey, queryFn, enabled: !!(rentalHistoryId), ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getWorkerLogs>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type GetWorkerLogsQueryResult = NonNullable<Awaited<ReturnType<typeof getWorkerLogs>>>
+export type GetWorkerLogsQueryError = unknown
+
+
+export function useGetWorkerLogs<TData = Awaited<ReturnType<typeof getWorkerLogs>>, TError = unknown>(
+ rentalHistoryId: number, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getWorkerLogs>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getWorkerLogs>>,
+          TError,
+          Awaited<ReturnType<typeof getWorkerLogs>>
+        > , 'initialData'
+      >, }
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetWorkerLogs<TData = Awaited<ReturnType<typeof getWorkerLogs>>, TError = unknown>(
+ rentalHistoryId: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getWorkerLogs>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getWorkerLogs>>,
+          TError,
+          Awaited<ReturnType<typeof getWorkerLogs>>
+        > , 'initialData'
+      >, }
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetWorkerLogs<TData = Awaited<ReturnType<typeof getWorkerLogs>>, TError = unknown>(
+ rentalHistoryId: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getWorkerLogs>>, TError, TData>>, }
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * @summary 대여 상태 변경 처리자 로그 조회
+ */
+
+export function useGetWorkerLogs<TData = Awaited<ReturnType<typeof getWorkerLogs>>, TError = unknown>(
+ rentalHistoryId: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getWorkerLogs>>, TError, TData>>, }
+ , queryClient?: QueryClient 
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getGetWorkerLogsQueryOptions(rentalHistoryId,options)
 
   const query = useQuery(queryOptions , queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 

@@ -15,4 +15,5 @@ export interface AdminRentalHistoryDetail {
   rentAt: string;
   returnedAt?: string;
   rentalStatus: AdminRentalHistoryDetailRentalStatus;
+  itemCode?: string;
 }

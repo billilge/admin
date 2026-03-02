@@ -19,4 +19,6 @@ export interface AdminRentalHistoryRequest {
   count: number;
   /** 대여 시작 시간 정보 */
   rentalTime: RentalTime;
+  /** 근무자 ID */
+  workerId: number;
 }

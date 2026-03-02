@@ -75,6 +75,7 @@ export default function AddRentalModal({ isOpen, onClose, onApply }: RentalAddMo
         itemId: selectedItem.itemId,
         count: 1,
         rentalTime: { hour, minute },
+        workerId: selectedStaff.memberId,
       },
     });
   };

@@ -12,15 +12,18 @@ import {
   Trash2,
   ChevronDown,
   Check,
+  ClipboardList,
+  Pencil,
 } from 'lucide-react';
 import { useState, useRef, useEffect } from 'react';
 import toast from 'react-hot-toast';
-import { createRental, useUpdateRentalStatus } from '@/api-client';
+import { createRental, useUpdateRentalStatus, useUpdateItemCode } from '@/api-client';
 import { getGetAllRentalHistoriesQueryOptions } from '@/api-client';
 import { useDeleteRentalHistory } from '@/api-client';
 import { RentalHistoryRequest, RentalStatusUpdateRequestRentalStatus } from '@/api-client/model';
 import RentalAddModal from '@/components/modal/AddRentalModal';
 import RentalDeleteModal from '@/components/modal/DeleteRentalModal';
+import WorkerLogModal from '@/components/modal/WorkerLogModal';
 import TableSkeleton from '@/components/ui/table-skeleton';
 import { Rental } from '@/types/rental';
 
@@ -53,6 +56,10 @@ export default function RentalPage() {
   const [currentFilter, setCurrentFilter] = useState<FilterType>('none');
   const [searchTerm, setSearchTerm] = useState('');
   const [openStatusDropdown, setOpenStatusDropdown] = useState<number | null>(null);
+  const [workerLogRentalId, setWorkerLogRentalId] = useState<number | null>(null);
+  const [editingItemCodeId, setEditingItemCodeId] = useState<number | null>(null);
+  const [editingItemCodeValue, setEditingItemCodeValue] = useState('');
+  const [optimisticItemCodes, setOptimisticItemCodes] = useState<Record<number, string>>({});
   const [dropdownPosition, setDropdownPosition] = useState<DropdownPosition>({ top: 0, left: 0 });
 
   const filterDropdownRef = useRef<HTMLDivElement>(null);
@@ -70,6 +77,7 @@ export default function RentalPage() {
     staleTime: 1000 * 60 * 3,
   });
   const { mutateAsync: updateRentalStatus } = useUpdateRentalStatus();
+  const { mutateAsync: updateItemCode } = useUpdateItemCode();
 
   const totalPages = data?.totalPage ?? cachedTotalPages.current;
 
@@ -201,6 +209,47 @@ export default function RentalPage() {
         left: rect.left + window.scrollX,
       });
       setOpenStatusDropdown(rentalId);
+    }
+  };
+
+  const handleItemCodeEdit = (rentalHistoryId: number, currentValue?: string | null) => {
+    setEditingItemCodeId(rentalHistoryId);
+    setEditingItemCodeValue(currentValue ?? '');
+  };
+
+  const handleItemCodeSave = (rentalHistoryId: number) => {
+    const trimmed = editingItemCodeValue.trim();
+    setEditingItemCodeId(null);
+    if (!trimmed) return;
+
+    setOptimisticItemCodes((prev) => ({ ...prev, [rentalHistoryId]: trimmed }));
+
+    updateItemCode({
+      rentalHistoryId,
+      data: { itemCode: trimmed },
+    })
+      .then(() => {
+        queryClient.invalidateQueries({ queryKey: ['/admin/rentals'] });
+        toast.success('품목번호가 수정되었습니다.');
+      })
+      .catch((e: any) => {
+        const message = e?.response?.data?.message || '품목번호 수정에 실패했습니다.';
+        toast.error(message);
+      })
+      .finally(() => {
+        setOptimisticItemCodes((prev) => {
+          const next = { ...prev };
+          delete next[rentalHistoryId];
+          return next;
+        });
+      });
+  };
+
+  const handleItemCodeKeyDown = (e: React.KeyboardEvent, rentalHistoryId: number) => {
+    if (e.key === 'Enter') {
+      handleItemCodeSave(rentalHistoryId);
+    } else if (e.key === 'Escape') {
+      setEditingItemCodeId(null);
     }
   };
 
@@ -337,6 +386,9 @@ export default function RentalPage() {
                   물품명
                 </th>
                 <th className="whitespace-nowrap px-4 py-3.5 text-left text-xs font-semibold uppercase tracking-wider text-[var(--foreground-muted)]">
+                  품목번호
+                </th>
+                <th className="whitespace-nowrap px-4 py-3.5 text-left text-xs font-semibold uppercase tracking-wider text-[var(--foreground-muted)]">
                   대여일
                 </th>
                 <th className="whitespace-nowrap px-4 py-3.5 text-left text-xs font-semibold uppercase tracking-wider text-[var(--foreground-muted)]">
@@ -352,7 +404,7 @@ export default function RentalPage() {
             </thead>
             <tbody className="divide-y divide-[var(--border-muted)]">
               {isLoading ? (
-                <TableSkeleton columns={8} rows={10} />
+                <TableSkeleton columns={9} rows={10} />
               ) : (
                 filteredAndSortedRentals().map((rental, index) => (
                   <tr
@@ -370,6 +422,29 @@ export default function RentalPage() {
                     </td>
                     <td className="whitespace-nowrap px-4 py-4 text-sm text-[var(--foreground)]">
                       {rental.itemName}
+                    </td>
+                    <td className="whitespace-nowrap px-4 py-4 text-sm text-[var(--foreground-muted)]">
+                      {editingItemCodeId === rental.rentalHistoryId ? (
+                        <input
+                          type="text"
+                          value={editingItemCodeValue}
+                          onChange={(e) => setEditingItemCodeValue(e.target.value)}
+                          onBlur={() => handleItemCodeSave(rental.rentalHistoryId)}
+                          onKeyDown={(e) => handleItemCodeKeyDown(e, rental.rentalHistoryId)}
+                          autoFocus
+                          className="h-7 w-24 rounded border border-[var(--primary)] bg-[var(--card)] px-2 text-sm text-[var(--foreground)] focus:outline-none focus:ring-1 focus:ring-[var(--primary)]"
+                        />
+                      ) : (optimisticItemCodes[rental.rentalHistoryId] ?? rental.itemCode) ? (
+                        <span>{optimisticItemCodes[rental.rentalHistoryId] ?? rental.itemCode}</span>
+                      ) : (
+                        <button
+                          onClick={() => handleItemCodeEdit(rental.rentalHistoryId, rental.itemCode)}
+                          className="flex items-center gap-1 rounded px-1.5 py-0.5 text-[var(--foreground-subtle)] hover:bg-[var(--background-hover)] hover:text-[var(--foreground-muted)] cursor-pointer transition-colors"
+                        >
+                          <Pencil className="h-3 w-3" />
+                          <span className="text-xs">입력</span>
+                        </button>
+                      )}
                     </td>
                     <td className="whitespace-nowrap px-4 py-4 text-sm text-[var(--foreground-muted)]">
                       <div className="flex items-center gap-1.5">
@@ -409,12 +484,20 @@ export default function RentalPage() {
                       </div>
                     </td>
                     <td className="whitespace-nowrap px-4 py-4 text-center">
-                      <button
-                        onClick={() => handleDeleteClick(rental)}
-                        className="rounded-lg p-1.5 text-[var(--foreground-subtle)] hover:bg-[var(--error-bg)] hover:text-[var(--error)] cursor-pointer transition-colors"
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </button>
+                      <div className="flex items-center justify-center gap-1">
+                        <button
+                          onClick={() => setWorkerLogRentalId(rental.rentalHistoryId)}
+                          className="rounded-lg p-1.5 text-[var(--foreground-subtle)] hover:bg-[var(--info-bg)] hover:text-[var(--info)] cursor-pointer transition-colors"
+                        >
+                          <ClipboardList className="h-4 w-4" />
+                        </button>
+                        <button
+                          onClick={() => handleDeleteClick(rental)}
+                          className="rounded-lg p-1.5 text-[var(--foreground-subtle)] hover:bg-[var(--error-bg)] hover:text-[var(--error)] cursor-pointer transition-colors"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 ))
@@ -498,6 +581,13 @@ export default function RentalPage() {
           onDelete={handleDeleteRental}
           rentalInfo={`${rentalToDelete.member.name}님의 ${rentalToDelete.itemName} 대여 기록`}
           isActive={rentalToDelete.rentalStatus !== 'RETURNED'}
+        />
+      )}
+      {workerLogRentalId !== null && (
+        <WorkerLogModal
+          isOpen={workerLogRentalId !== null}
+          onClose={() => setWorkerLogRentalId(null)}
+          rentalHistoryId={workerLogRentalId}
         />
       )}
     </div>

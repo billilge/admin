@@ -10,4 +10,5 @@ export type Rental = {
   rentAt: string;
   returnedAt?: string | null | undefined; // TODO : 이래도 되나
   rentalStatus: RentalStatusUpdateRequestRentalStatus;
+  itemCode?: string | null;
 };
