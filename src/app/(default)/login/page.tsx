@@ -3,7 +3,7 @@
 import { Eye, EyeOff, ArrowRight } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import React, { useRef } from 'react';
+import React, { useRef, useEffect } from 'react';
 import { useState } from 'react';
 import toast from 'react-hot-toast';
 import { Button } from '@/components/ui/button';
@@ -16,6 +16,13 @@ export default function LoginPage() {
   const [password, setPassword] = useState('');
 
   const router = useRouter();
+
+  useEffect(() => {
+    const token = localStorage.getItem('token');
+    if (token) {
+      router.replace('/rental');
+    }
+  }, [router]);
 
   const validateLoginForm = (studentId: string, password: string) => {
     if (!studentId) {

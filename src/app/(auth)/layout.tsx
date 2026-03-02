@@ -13,7 +13,14 @@ import {
   LogOut,
 } from 'lucide-react';
 import useAuthRedirect from '@/hooks/useAuthRedirect';
-import { getRoleFromToken, hasPermission, type Role } from '@/lib/auth';
+import {
+  getRoleFromToken,
+  getUserInfoFromToken,
+  hasPermission,
+  ROLE_LABEL,
+  type Role,
+  type UserInfo,
+} from '@/lib/auth';
 import AccessDeniedModal from '@/components/modal/AccessDeniedModal';
 
 type AuthLayoutProps = {
@@ -35,10 +42,12 @@ export default function AuthLayout({ children }: AuthLayoutProps) {
   const router = useRouter();
 
   const [role, setRole] = useState<Role | null>(null);
+  const [userInfo, setUserInfo] = useState<UserInfo | null>(null);
   const [showAccessDenied, setShowAccessDenied] = useState(false);
 
   useEffect(() => {
     setRole(getRoleFromToken());
+    setUserInfo(getUserInfoFromToken());
   }, []);
 
   // 현재 URL이 권한 없는 페이지인 경우 리다이렉트
@@ -99,15 +108,29 @@ export default function AuthLayout({ children }: AuthLayoutProps) {
           </ul>
         </nav>
 
-        {/* Logout */}
+        {/* User Info & Logout */}
         <div className="border-t border-[var(--border)] p-3">
-          <Link
-            href="/login"
-            className="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-[var(--foreground-muted)] hover:bg-[var(--sidebar-hover)] hover:text-[var(--error)]"
+          {userInfo && (
+            <div className="mb-2 rounded-lg bg-[var(--sidebar-hover)] px-3 py-2.5 flex-col">
+              <div className="flex flex-row justify-between">
+                <p className="text-sm font-medium text-[var(--foreground)]">{userInfo.name}</p>
+                <span className="inline-block rounded-full bg-[var(--primary)] px-2 py-0.5 text-xs font-medium text-white">
+                  {ROLE_LABEL[userInfo.role]}
+                </span>
+              </div>
+              <p className="text-xs text-[var(--foreground-muted)]">{userInfo.studentId}</p>
+            </div>
+          )}
+          <button
+            onClick={() => {
+              localStorage.removeItem('token');
+              router.push('/login');
+            }}
+            className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-[var(--foreground-muted)] hover:bg-[var(--sidebar-hover)] hover:text-[var(--error)] cursor-pointer"
           >
             <LogOut className="h-5 w-5" />
             로그아웃
-          </Link>
+          </button>
         </div>
       </aside>
 
@@ -115,10 +138,7 @@ export default function AuthLayout({ children }: AuthLayoutProps) {
       <main className="ml-64 flex-1 p-8">{children}</main>
 
       {/* Access Denied Modal */}
-      <AccessDeniedModal
-        isOpen={showAccessDenied}
-        onClose={() => setShowAccessDenied(false)}
-      />
+      <AccessDeniedModal isOpen={showAccessDenied} onClose={() => setShowAccessDenied(false)} />
     </div>
   );
 }
