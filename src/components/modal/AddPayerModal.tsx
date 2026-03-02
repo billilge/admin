@@ -29,9 +29,11 @@ export default function AddPayerModal({ isOpen, onClose, onApply }: AddPayerModa
 
   const addPayer = () => {
     if (name.trim() && studentId.trim()) {
-      const formattedStudentId = studentId.startsWith('20') ? studentId : `20${studentId}`;
+      if (studentId.length !== 8) {
+        return;
+      }
 
-      setPayers([...payers, { id: nextId, name, studentId: formattedStudentId }]);
+      setPayers([...payers, { id: nextId, name, studentId }]);
       setNextId(nextId + 1);
       setName('');
       setStudentId('');
@@ -54,12 +56,8 @@ export default function AddPayerModal({ isOpen, onClose, onApply }: AddPayerModa
   };
 
   const handleStudentIdChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value;
-    if (value.startsWith('20')) {
-      setStudentId(value.substring(2));
-    } else {
-      setStudentId(value);
-    }
+    const value = e.target.value.replace(/\D/g, '').slice(0, 8);
+    setStudentId(value);
   };
 
   if (!isOpen) return null;
@@ -83,15 +81,13 @@ export default function AddPayerModal({ isOpen, onClose, onApply }: AddPayerModa
         <div className="border-b border-[var(--border)] px-6 py-4">
           <div className="flex gap-3">
             <div className="relative flex-1">
-              <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-4 text-[var(--foreground)]">
-                20
-              </div>
               <input
                 type="text"
+                inputMode="numeric"
                 value={studentId}
                 onChange={handleStudentIdChange}
-                placeholder="학번"
-                className="h-12 w-full rounded-lg border border-[var(--border)] bg-[var(--input)] pl-10 pr-4 text-[var(--foreground)] placeholder:text-[var(--foreground-subtle)] focus:border-[var(--primary)] focus:outline-none focus:ring-1 focus:ring-[var(--primary)]"
+                placeholder="학번 (8자리)"
+                className="h-12 w-full rounded-lg border border-[var(--border)] bg-[var(--input)] px-4 text-[var(--foreground)] placeholder:text-[var(--foreground-subtle)] focus:border-[var(--primary)] focus:outline-none focus:ring-1 focus:ring-[var(--primary)]"
                 onKeyDown={handleKeyDown}
               />
             </div>
