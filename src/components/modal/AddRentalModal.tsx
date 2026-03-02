@@ -39,7 +39,7 @@ export default function AddRentalModal({ isOpen, onClose, onApply }: RentalAddMo
   const { data: staffsData } = useGetAdminList({ search: staffSearchTerm });
 
   const students = studentsData?.members ?? [];
-  const items = (itemData?.items ?? []).filter((item) => item.itemType === 'RENTAL');
+  const items = itemData?.items ?? [];
   const staffs = staffsData?.admins ?? [];
 
   const filteredStaffs = staffs.filter(
