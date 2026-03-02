@@ -17,6 +17,7 @@ import toast from 'react-hot-toast';
 import { useGetAllPayers, useDeletePayers } from '@/api-client';
 import { useAddPayers } from '@/api-client';
 import AddPayerModal from '@/components/modal/AddPayerModal';
+import DeletePayerModal from '@/components/modal/DeletePayerModal';
 import TableSkeleton from '@/components/ui/table-skeleton';
 import { apiClient } from '@/lib/axios';
 import { Payer } from '@/types/payer';
@@ -27,6 +28,7 @@ export default function PayerPage() {
   const [searchInput, setSearchInput] = useState('');
   const [searchKeyword, setSearchKeyword] = useState('');
   const [isDownloading, setIsDownloading] = useState(false);
+  const [deleteTarget, setDeleteTarget] = useState<{ payerId: number; name: string } | null>(null);
   const cachedTotalPages = useRef(1);
 
   const { data, isLoading } = useGetAllPayers(
@@ -55,13 +57,16 @@ export default function PayerPage() {
 
   const queryClient = useQueryClient();
 
-  const handleDeletePayer = async (payerId: number) => {
+  const handleDeletePayer = async () => {
+    if (!deleteTarget) return;
     try {
-      await deletePayers({ data: { payerIds: [payerId] } });
+      await deletePayers({ data: { payerIds: [deleteTarget.payerId] } });
       await queryClient.invalidateQueries({ queryKey: ['/admin/members/payers'] });
       toast.success('납부자가 삭제되었습니다.');
     } catch (error) {
       toast.error('삭제 중 오류가 발생했습니다.');
+    } finally {
+      setDeleteTarget(null);
     }
   };
 
@@ -216,7 +221,7 @@ export default function PayerPage() {
                     </td>
                     <td className="whitespace-nowrap px-4 py-4 text-center">
                       <button
-                        onClick={() => handleDeletePayer(payer.payerId)}
+                        onClick={() => setDeleteTarget({ payerId: payer.payerId, name: payer.name })}
                         className="rounded-lg p-1.5 text-[var(--foreground-subtle)] hover:bg-[var(--error-bg)] hover:text-[var(--error)] cursor-pointer transition-colors"
                       >
                         <Trash2 className="h-4 w-4" />
@@ -273,6 +278,13 @@ export default function PayerPage() {
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
         onApply={handleAddPayers}
+      />
+
+      <DeletePayerModal
+        isOpen={deleteTarget !== null}
+        onClose={() => setDeleteTarget(null)}
+        onDelete={handleDeletePayer}
+        payerName={deleteTarget?.name ?? ''}
       />
 
       {isDownloading && (

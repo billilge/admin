@@ -32,6 +32,13 @@ export type AddPayerModalProps = {
   onApply: (payers: Payer[]) => void;
 };
 
+export type DeletePayerModalProps = {
+  isOpen: boolean;
+  onClose: () => void;
+  onDelete: () => void;
+  payerName: string;
+};
+
 export type AdminRole = 'ADMIN' | 'GA' | 'WORKER';
 
 export type AddAdminModalProps = {
