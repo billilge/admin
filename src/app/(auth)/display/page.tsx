@@ -17,8 +17,6 @@ import { useState, useRef } from 'react';
 import toast from 'react-hot-toast';
 import {
   useGetAllPosters,
-  useAddPoster,
-  useUpdatePoster,
   useDeletePoster,
   useActivatePoster,
   useDeactivatePoster,
@@ -29,6 +27,8 @@ import {
   getGetAllPostersQueryKey,
   getGetSchedulesQueryKey,
 } from '@/api-client';
+import { useMutation } from '@tanstack/react-query';
+import { customMutator } from '@/lib/axiosMutator';
 import type { DisplayCalendarScheduleDetail, DisplayPosterDetail } from '@/api-client/model';
 
 type TabType = 'calendar' | 'poster';
@@ -117,29 +117,53 @@ export default function DisplayPage() {
     },
   });
 
-  const addPosterMutation = useAddPoster({
-    mutation: {
-      onSuccess: () => {
-        queryClient.invalidateQueries({ queryKey: getGetAllPostersQueryKey() });
-        toast.success('포스터가 추가되었습니다.');
-        setIsPosterModalOpen(false);
-      },
-      onError: (error: any) => {
-        toast.error(error?.response?.data?.message || '포스터 추가에 실패했습니다.');
-      },
+  const addPosterMutation = useMutation({
+    mutationFn: async ({ image, title }: { image: File; title: string }) => {
+      const formData = new FormData();
+      formData.append('image', image);
+      formData.append(
+        'posterRequest',
+        new Blob([JSON.stringify({ title })], { type: 'application/json' }),
+      );
+      return customMutator<void>({
+        url: '/display/posters',
+        method: 'POST',
+        data: formData,
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: getGetAllPostersQueryKey() });
+      toast.success('포스터가 추가되었습니다.');
+      setIsPosterModalOpen(false);
+    },
+    onError: (error: any) => {
+      toast.error(error?.response?.data?.message || '포스터 추가에 실패했습니다.');
     },
   });
 
-  const updatePosterMutation = useUpdatePoster({
-    mutation: {
-      onSuccess: () => {
-        queryClient.invalidateQueries({ queryKey: getGetAllPostersQueryKey() });
-        toast.success('포스터가 수정되었습니다.');
-        setIsPosterModalOpen(false);
-      },
-      onError: (error: any) => {
-        toast.error(error?.response?.data?.message || '포스터 수정에 실패했습니다.');
-      },
+  const updatePosterMutation = useMutation({
+    mutationFn: async ({ posterId, image, title }: { posterId: number; image?: File; title: string }) => {
+      const formData = new FormData();
+      if (image) {
+        formData.append('image', image);
+      }
+      formData.append(
+        'posterRequest',
+        new Blob([JSON.stringify({ title })], { type: 'application/json' }),
+      );
+      return customMutator<void>({
+        url: `/display/posters/${posterId}`,
+        method: 'PATCH',
+        data: formData,
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: getGetAllPostersQueryKey() });
+      toast.success('포스터가 수정되었습니다.');
+      setIsPosterModalOpen(false);
+    },
+    onError: (error: any) => {
+      toast.error(error?.response?.data?.message || '포스터 수정에 실패했습니다.');
     },
   });
 
@@ -283,10 +307,8 @@ export default function DisplayPage() {
       // 수정
       updatePosterMutation.mutate({
         posterId: editingPoster.posterId,
-        data: {
-          ...(posterImageFile ? { image: posterImageFile } : {}),
-          posterRequest: { title: posterTitle },
-        },
+        ...(posterImageFile ? { image: posterImageFile } : {}),
+        title: posterTitle,
       });
     } else {
       // 추가
@@ -295,10 +317,8 @@ export default function DisplayPage() {
         return;
       }
       addPosterMutation.mutate({
-        data: {
-          image: posterImageFile,
-          posterRequest: { title: posterTitle },
-        },
+        image: posterImageFile,
+        title: posterTitle,
       });
     }
   };
