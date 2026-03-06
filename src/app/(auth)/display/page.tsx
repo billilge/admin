@@ -579,8 +579,8 @@ export default function DisplayPage() {
 
       {/* 일정 편집 모달 */}
       {isScheduleModalOpen && selectedDate && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
-          <div className="w-[480px] rounded-xl bg-[var(--popover)] p-6 shadow-xl">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
+          <div className="w-full max-w-[480px] rounded-xl bg-[var(--popover)] p-6 shadow-xl">
             <div className="flex items-center justify-between mb-6">
               <h2 className="text-lg font-bold text-[var(--foreground)]">
                 {selectedDate} 일정 편집
@@ -645,8 +645,8 @@ export default function DisplayPage() {
 
       {/* 포스터 추가/수정 모달 */}
       {isPosterModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
-          <div className="w-[480px] rounded-xl bg-[var(--popover)] p-6 shadow-xl">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
+          <div className="w-full max-w-[480px] rounded-xl bg-[var(--popover)] p-6 shadow-xl">
             <div className="flex items-center justify-between mb-6">
               <h2 className="text-lg font-bold text-[var(--foreground)]">
                 {editingPoster ? '포스터 수정' : '포스터 추가'}
@@ -735,8 +735,8 @@ export default function DisplayPage() {
 
       {/* 삭제 확인 모달 */}
       {isDeleteModalOpen && posterToDelete && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
-          <div className="w-[400px] rounded-xl bg-[var(--popover)] p-6 shadow-xl">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
+          <div className="w-full max-w-[400px] rounded-xl bg-[var(--popover)] p-6 shadow-xl">
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-lg font-bold text-[var(--foreground)]">포스터 삭제</h2>
               <button
