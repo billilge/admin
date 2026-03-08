@@ -434,15 +434,19 @@ export default function RentalPage() {
                           autoFocus
                           className="h-7 w-24 rounded border border-[var(--primary)] bg-[var(--card)] px-2 text-sm text-[var(--foreground)] focus:outline-none focus:ring-1 focus:ring-[var(--primary)]"
                         />
-                      ) : (optimisticItemCodes[rental.rentalHistoryId] ?? rental.itemCode) ? (
-                        <span>{optimisticItemCodes[rental.rentalHistoryId] ?? rental.itemCode}</span>
                       ) : (
                         <button
-                          onClick={() => handleItemCodeEdit(rental.rentalHistoryId, rental.itemCode)}
-                          className="flex items-center gap-1 rounded px-1.5 py-0.5 text-[var(--foreground-subtle)] hover:bg-[var(--background-hover)] hover:text-[var(--foreground-muted)] cursor-pointer transition-colors"
+                          onClick={() => handleItemCodeEdit(rental.rentalHistoryId, optimisticItemCodes[rental.rentalHistoryId] ?? rental.itemCode)}
+                          className="flex items-center gap-1 rounded px-1.5 py-0.5 text-[var(--foreground-muted)] hover:bg-[var(--background-hover)] cursor-pointer transition-colors"
                         >
-                          <Pencil className="h-3 w-3" />
-                          <span className="text-xs">입력</span>
+                          {(optimisticItemCodes[rental.rentalHistoryId] ?? rental.itemCode) ? (
+                            <span>{optimisticItemCodes[rental.rentalHistoryId] ?? rental.itemCode}</span>
+                          ) : (
+                            <>
+                              <Pencil className="h-3 w-3 text-[var(--foreground-subtle)]" />
+                              <span className="text-xs text-[var(--foreground-subtle)]">입력</span>
+                            </>
+                          )}
                         </button>
                       )}
                     </td>
