@@ -59,7 +59,7 @@ export default function RentalPage() {
   const [workerLogRentalId, setWorkerLogRentalId] = useState<number | null>(null);
   const [editingItemCodeId, setEditingItemCodeId] = useState<number | null>(null);
   const [editingItemCodeValue, setEditingItemCodeValue] = useState('');
-  const [optimisticItemCodes, setOptimisticItemCodes] = useState<Record<number, string>>({});
+  const [optimisticItemCodes, setOptimisticItemCodes] = useState<Record<number, string | null>>({});
   const [dropdownPosition, setDropdownPosition] = useState<DropdownPosition>({ top: 0, left: 0 });
 
   const filterDropdownRef = useRef<HTMLDivElement>(null);
@@ -226,7 +226,7 @@ export default function RentalPage() {
 
     updateItemCode({
       rentalHistoryId,
-      data: { itemCode: value },
+      data: { itemCode: value as unknown as string },
     })
       .then(() => {
         queryClient.invalidateQueries({ queryKey: ['/admin/rentals'] });
