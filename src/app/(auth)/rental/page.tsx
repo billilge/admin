@@ -220,13 +220,13 @@ export default function RentalPage() {
   const handleItemCodeSave = (rentalHistoryId: number) => {
     const trimmed = editingItemCodeValue.trim();
     setEditingItemCodeId(null);
-    if (!trimmed) return;
+    const value = trimmed || null;
 
-    setOptimisticItemCodes((prev) => ({ ...prev, [rentalHistoryId]: trimmed }));
+    setOptimisticItemCodes((prev) => ({ ...prev, [rentalHistoryId]: value }));
 
     updateItemCode({
       rentalHistoryId,
-      data: { itemCode: trimmed },
+      data: { itemCode: value },
     })
       .then(() => {
         queryClient.invalidateQueries({ queryKey: ['/admin/rentals'] });
